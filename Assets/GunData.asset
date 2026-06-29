@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: GunData
   m_EditorClassIdentifier: Assembly-CSharp::WeaponData
   attackName: 
-  attackType: 0
+  attackType: 1
   damage: 10
-  cooldown: 0
+  cooldown: 0.1
   range: 30
   Cost: 0
-  maxAmmo: 10
+  maxAmmo: 30
   bulletPrefab: {fileID: 2590117854685811484, guid: cbf4c71784c408d4095bc50401a8049f, type: 3}
   attackRadius: 0
