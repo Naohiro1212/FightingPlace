@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerAttack : MonoBehaviour
 {
@@ -8,7 +9,8 @@ public class PlayerAttack : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        // 仮でマウスの左クリックで攻撃するようにしている。実際ではコントローラー
+        if (Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame)
         {
             currentWeapon.Attack();
         }

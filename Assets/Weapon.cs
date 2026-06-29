@@ -55,5 +55,7 @@ public class Weapon : MonoBehaviour
         {
             Instantiate(weaponData.bulletPrefab, firePoint.position, firePoint.rotation);
         }
+
+
     }
 }
