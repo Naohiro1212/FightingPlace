@@ -10,9 +10,19 @@ public class PlayerMove : MonoBehaviour
     private Vector3 moveInput;
     private Vector3 target;
 
+    // プレイヤーのステータスを取得するための変数
+    PlayerStatus playerStatus;
+
     private void Start()
     {
+        // Rigidbody
         rb = GetComponent<Rigidbody>();
+        if (rb == null) Debug.Log("rbが入っていません");
+
+        // プレイヤーのステータス
+        playerStatus = GetComponent<PlayerStatus>();
+        if (playerStatus == null) Debug.Log("playerStatusが入っていません");
+
     }
 
     // 入力受付のみ
@@ -22,10 +32,20 @@ public class PlayerMove : MonoBehaviour
 
         if (Keyboard.current != null)
         {
-            if (Keyboard.current.aKey.isPressed) input.x -= 1f;
-            if (Keyboard.current.dKey.isPressed) input.x += 1f;
-            if (Keyboard.current.sKey.isPressed) input.y -= 1f;
-            if (Keyboard.current.wKey.isPressed) input.y += 1f;
+            if (playerStatus.playerID == 1)
+            {
+                if (Keyboard.current.aKey.isPressed) input.x -= 1f;
+                if (Keyboard.current.dKey.isPressed) input.x += 1f;
+                if (Keyboard.current.sKey.isPressed) input.y -= 1f;
+                if (Keyboard.current.wKey.isPressed) input.y += 1f;
+            }
+            else if (playerStatus.playerID == 2)
+            {
+                if (Keyboard.current.leftArrowKey.isPressed) input.x -= 1f;
+                if (Keyboard.current.rightArrowKey.isPressed) input.x += 1f;
+                if (Keyboard.current.downArrowKey.isPressed) input.y -= 1f;
+                if (Keyboard.current.upArrowKey.isPressed) input.y += 1f;
+            }
         }
 
         moveInput = new Vector3(input.x, 0f, input.y).normalized;

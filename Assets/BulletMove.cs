@@ -5,23 +5,16 @@ public class BulletMove : MonoBehaviour
     [SerializeField] private float speed = 5.0f; // 弾の速度
     private Vector3 startposition; // 生まれた場所を記憶する変数
 
-    private WeaponData weaponData;
-    private Rigidbody rb;
+    [SerializeField] private WeaponData weaponData;
+    [SerializeField] private Rigidbody rb;
+    [SerializeField] private PlayerStatus playerStatus;
 
     void Start()
     {
-        // 銃のステータスからとってくる
-        GameObject weapon = GameObject.FindWithTag("Gun");
-        weaponData = weapon.GetComponent<WeaponData>();
-
         // 最初に生成された座標を記憶しておく
         startposition = transform.position;
-
-        // Rigidbodyを取得し、弾の正面に向かって一気にスピードを与える
-        rb = GetComponent<Rigidbody>();
-        rb.linearVelocity = transform.up * speed;
+        Debug.Log(startposition);
     }
-
 
     // Update is called once per frame
     void Update()
@@ -39,6 +32,24 @@ public class BulletMove : MonoBehaviour
 
     void FixedUpdate()
     {
-        
+        Debug.Log("AddForce実行中！ 力の向き: " + (transform.up * speed));
+        rb.linearVelocity = transform.up * speed;
+    }
+
+    public void SetUp(WeaponData weapondata, PlayerStatus playerstatus)
+    {
+        weaponData = weapondata;
+        playerStatus = playerstatus;
+
+        Debug.Log("発射者 = " + playerStatus.name);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.TryGetComponent<PlayerStatus>(out PlayerStatus targetStatus))
+        {
+            targetStatus.TakeDamage(weaponData.damage);
+            Destroy(gameObject);
+        }
     }
 }

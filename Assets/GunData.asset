@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b065f107eb32f94a819437ca2f65167, type: 3}
   m_Name: GunData
   m_EditorClassIdentifier: Assembly-CSharp::WeaponData
-  attackName: 
+  attackName: GunAttack
   attackType: 1
   damage: 10
   cooldown: 0.1

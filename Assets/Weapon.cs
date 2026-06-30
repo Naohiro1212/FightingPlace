@@ -1,11 +1,13 @@
+using Unity.Mathematics;
 using UnityEngine;
 
 public class Weapon : MonoBehaviour
 {
     [SerializeField] private WeaponData weaponData;
+    [SerializeField] private PlayerStatus playerStatus;
     [SerializeField] private Transform firePoint;
 
-    private int currentAmmo;
+    [SerializeField] private int currentAmmo;
 
     public WeaponData Data => weaponData;
     public float Cooldown => weaponData.cooldown;
@@ -53,9 +55,22 @@ public class Weapon : MonoBehaviour
 
         if (weaponData.bulletPrefab != null && firePoint != null)
         {
-            Instantiate(weaponData.bulletPrefab, firePoint.position, firePoint.rotation);
+            // 銃口の回転に対して、X軸に-90度回転を加えて生成
+            Quaternion rotation = firePoint.rotation * Quaternion.Euler(90, 0, 0);
+
+            // 弾を生成し、GameObjectとして変数に受ける
+            GameObject bullet = Instantiate(weaponData.bulletPrefab, firePoint.position, rotation);
+
+            Debug.Log("Gun位置: " + transform.position);
+
+            // 弾についているBulletMoveスクリプトを取得する
+            BulletMove bulletMove = bullet.GetComponent<BulletMove>();
+
+            if (bulletMove != null)
+            {
+                // 弾のSetupメソッドを読んで、自分のWeaponDataとplayerStatusを渡す
+                bulletMove.SetUp(weaponData, playerStatus);
+            }
         }
-
-
     }
 }

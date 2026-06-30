@@ -15,9 +15,10 @@ GameObject:
   - component: {fileID: 3274081687764940710}
   - component: {fileID: 6262406289325697858}
   - component: {fileID: -7628632145928082492}
+  - component: {fileID: -4776188462379458809}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -167,3 +168,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88540d6675dc88d4fb6217050f022f75, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  currentWeapon: {fileID: 0}
+--- !u!114 &-4776188462379458809
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1863488170592608613}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0936ee29c97898c4ba49fc87e8568ad2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerStatus
+  playerID: 0
+  maxHealth: 100
