@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem.Processors;
 
 public class PlayerStatus : MonoBehaviour
 {
@@ -10,7 +11,12 @@ public class PlayerStatus : MonoBehaviour
     public int MaxHealth => maxHealth;
 
     private bool isDead = false;
-    private bool canMove = true;
+    public bool canMove = true;
+
+    public bool IsDead()
+    {
+        return isDead;
+    }
 
     void Start()
     {
@@ -24,7 +30,11 @@ public class PlayerStatus : MonoBehaviour
 
     private void Dead()
     {
-        if (currentHealth <= 0) isDead = true;
+        if (currentHealth <= 0)
+        {
+            isDead = true;
+            canMove = false;
+        }
     }
 
     public void TakeDamage(int amount)

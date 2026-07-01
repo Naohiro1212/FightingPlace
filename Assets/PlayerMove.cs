@@ -27,7 +27,7 @@ public class PlayerMove : MonoBehaviour
 
     // 入力受付のみ
     private void Update()
-    {
+    { 
         Vector2 input = Vector2.zero;
 
         if (Keyboard.current != null)
@@ -68,8 +68,11 @@ public class PlayerMove : MonoBehaviour
     private void FixedUpdate()
     {
         Vector3 nextPosition = rb.position + moveInput * moveSpeed * Time.fixedDeltaTime;
-        rb.MovePosition(nextPosition);
-
+        
+        if (playerStatus.canMove == true)
+        {
+            rb.MovePosition(nextPosition);
+        }
         Vector3 lookDirection = target - transform.position;
         lookDirection.y = 0f;
 

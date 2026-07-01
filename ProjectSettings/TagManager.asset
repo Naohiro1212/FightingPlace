@@ -9,11 +9,11 @@ TagManager:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - target
   - Water
   - UI
-  - 
-  - 
+  - P1Camera
+  - P2Camera
   - 
   - 
   - 

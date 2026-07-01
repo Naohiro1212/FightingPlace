@@ -46,9 +46,21 @@ public class BulletMove : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        // BoxColliderのみ判定を行う
+        if (!(other is BoxCollider))
+        {
+            return;
+        }
+
         if (other.TryGetComponent<PlayerStatus>(out PlayerStatus targetStatus))
         {
             targetStatus.TakeDamage(weaponData.damage);
+            Destroy(gameObject);
+        }
+
+        // 静的なオブジェクトに当たった場合も弾を消す
+        if(other.gameObject.CompareTag("StaticObject"))
+        {
             Destroy(gameObject);
         }
     }

@@ -58,8 +58,11 @@ public class Weapon : MonoBehaviour
             // 銃口の回転に対して、X軸に-90度回転を加えて生成
             Quaternion rotation = firePoint.rotation * Quaternion.Euler(90, 0, 0);
 
+            // 位置は銃口の少し前方に設定
+            Vector3 spawnPosition = firePoint.position + firePoint.forward * 0.5f;
+
             // 弾を生成し、GameObjectとして変数に受ける
-            GameObject bullet = Instantiate(weaponData.bulletPrefab, firePoint.position, rotation);
+            GameObject bullet = Instantiate(weaponData.bulletPrefab, spawnPosition, rotation);
 
             Debug.Log("Gun位置: " + transform.position);
 
