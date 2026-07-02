@@ -12,6 +12,7 @@ public class PlayerStatus : MonoBehaviour
 
     private bool isDead = false;
     public bool canMove = true;
+    public bool canShoot = true;
 
     public bool IsDead()
     {
@@ -26,6 +27,11 @@ public class PlayerStatus : MonoBehaviour
     void Update()
     {
         Dead();
+
+        if (isDead)
+        {
+            GameManager.Instance.OnPlayerDown(playerID);
+        }
     }
 
     private void Dead()

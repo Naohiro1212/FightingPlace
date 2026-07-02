@@ -50,6 +50,7 @@ public class PlayerMove : MonoBehaviour
 
         moveInput = new Vector3(input.x, 0f, input.y).normalized;
 
+        // マウスの位置を取得してターゲットを更新
         if (Mouse.current != null && Camera.main != null)
         {
             Vector2 mousePos = Mouse.current.position.ReadValue();
@@ -73,13 +74,18 @@ public class PlayerMove : MonoBehaviour
         {
             rb.MovePosition(nextPosition);
         }
-        Vector3 lookDirection = target - transform.position;
-        lookDirection.y = 0f;
 
-        if (lookDirection.sqrMagnitude > 0.001f)
+        // canMoveがTrueの時のプレイヤーの向きをマウス方向に向ける
+        if(playerStatus.canMove == true)
         {
-            Quaternion rotation = Quaternion.LookRotation(lookDirection);
-            rb.MoveRotation(rotation);
+            Vector3 lookDirection = target - transform.position;
+            lookDirection.y = 0f;
+
+            if (lookDirection.sqrMagnitude > 0.001f)
+            {
+                Quaternion rotation = Quaternion.LookRotation(lookDirection);
+                rb.MoveRotation(rotation);
+            }
         }
     }
 }
