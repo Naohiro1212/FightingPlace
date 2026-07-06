@@ -1,5 +1,7 @@
+using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -10,6 +12,11 @@ public class GameManager : MonoBehaviour
 
     // プレイ画面で一時的に勝利者を表示する為のUIテキスト
     [SerializeField] private TextMeshProUGUI resultText;
+
+    // シーン遷移用のFadeオブジェクト
+    [SerializeField] private GameObject fadeObject;
+
+    public static int winnerId { get; private set; } = 0; // 勝者のIDを保持する変数
 
     void Awake()
     {
@@ -31,13 +38,22 @@ public class GameManager : MonoBehaviour
         {
             Debug.Log("resultTextが設定されていません");
         }
+
+        // FadeObjectが設定されているか確認
+        if (fadeObject == null)
+        {
+            Debug.Log("fadeObjectが設定されていません");
+        }
     }
 
     public void OnPlayerDown(int downedPlayerId)
     {
         // downedPlayerIdが1なら2が勝者、downedPlayerIdが2なら1が勝者
-        int winnerId = (downedPlayerId == 1) ? 2 : 1;
+        winnerId = (downedPlayerId == 1) ? 2 : 1;
         ShowResult(winnerId);
+
+        // 2.5秒後にシーン遷移演出を開始
+        StartCoroutine(FinishAfterDelay());
 
         // プレイヤーをどちらも動けない状態にする
         for (int i = 0; i < playerStatuses.Length; i++)
@@ -51,5 +67,24 @@ public class GameManager : MonoBehaviour
     {
         resultText.text = "Player " + winnerId + " wins!";
         resultText.fontSize = 96;
+    }
+
+    private void CallScene()
+    {
+        // Fadeを取得し、FadeInする
+        Fade fade = fadeObject.GetComponent<Fade>();
+        fade.FadeIn(1f, () =>
+        {
+            SceneManager.LoadScene("GameOver");
+        });
+    }
+
+    IEnumerator FinishAfterDelay()
+    {
+        // 2.5秒間待機する
+        yield return new WaitForSeconds(2.5f);
+
+        // シーン遷移開始
+        CallScene();
     }
 }
