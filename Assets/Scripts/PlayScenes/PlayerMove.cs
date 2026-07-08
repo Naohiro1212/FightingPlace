@@ -5,29 +5,26 @@ public class PlayerMove : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 5f;
 
-    // 入力とマウスの方向に動く
     private Rigidbody rb;
     private Vector3 moveInput;
     private Vector3 target;
-
-    // プレイヤーのステータスを取得するための変数
-    PlayerStatus playerStatus;
+    private Animator animator;
+    private PlayerStatus playerStatus;
 
     private void Start()
     {
-        // Rigidbody
         rb = GetComponent<Rigidbody>();
         if (rb == null) Debug.Log("rbが入っていません");
 
-        // プレイヤーのステータス
         playerStatus = GetComponent<PlayerStatus>();
         if (playerStatus == null) Debug.Log("playerStatusが入っていません");
 
+        animator = GetComponent<Animator>();
+        if (animator == null) Debug.Log("animatorが入っていません");
     }
 
-    // 入力受付のみ
     private void Update()
-    { 
+    {
         Vector2 input = Vector2.zero;
 
         if (Keyboard.current != null)
@@ -48,9 +45,22 @@ public class PlayerMove : MonoBehaviour
             }
         }
 
-        moveInput = new Vector3(input.x, 0f, input.y).normalized;
+        // 正規化して斜め移動が速くなりすぎないようにする
+        input = input.normalized;
 
-        // マウスの位置を取得してターゲットを更新
+        // Vector2 → Vector3
+        moveInput = new Vector3(input.x, 0f, input.y);
+
+        // Animator パラメータ更新
+        if (animator != null)
+        {
+            Vector3 localMove = transform.InverseTransformDirection(moveInput);
+            animator.SetFloat("Horizontal", localMove.x);
+            animator.SetFloat("Vertical", localMove.z);
+            animator.SetFloat("Speed", moveInput.magnitude);
+        }
+
+        // マウス位置から向き先を取得
         if (Mouse.current != null && Camera.main != null)
         {
             Vector2 mousePos = Mouse.current.position.ReadValue();
@@ -65,19 +75,13 @@ public class PlayerMove : MonoBehaviour
         }
     }
 
-    // 実際に動く
     private void FixedUpdate()
     {
-        Vector3 nextPosition = rb.position + moveInput * moveSpeed * Time.fixedDeltaTime;
-        
-        if (playerStatus.canMove == true)
+        if (playerStatus.canMove)
         {
+            Vector3 nextPosition = rb.position + moveInput * moveSpeed * Time.fixedDeltaTime;
             rb.MovePosition(nextPosition);
-        }
 
-        // canMoveがTrueの時のプレイヤーの向きをマウス方向に向ける
-        if(playerStatus.canMove == true)
-        {
             Vector3 lookDirection = target - transform.position;
             lookDirection.y = 0f;
 

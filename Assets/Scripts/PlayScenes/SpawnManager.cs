@@ -30,7 +30,7 @@ public class SpawnManager : MonoBehaviour
         while (index1 == index2);
 
         // 埋まってしまわないように想定した位置より少し上に生成
-        player1.position = spawnPoints[index1].position + Vector3.up * 1.0f;
-        player2.position = spawnPoints[index2].position + Vector3.up * 1.0f;
+        player1.position = spawnPoints[index1].position + Vector3.up * 1.5f;
+        player2.position = spawnPoints[index2].position + Vector3.up * 1.5f;
     }
 }
