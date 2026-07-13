@@ -126,4 +126,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Weapon
   weaponData: {fileID: 11400000, guid: b14ca34096e26344ba46c0afded7e928, type: 2}
+  playerStatus: {fileID: 0}
   firePoint: {fileID: 0}
+  currentAmmo: 0

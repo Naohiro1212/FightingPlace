@@ -9,11 +9,12 @@ public class BulletMove : MonoBehaviour
     [SerializeField] private Rigidbody rb;
     [SerializeField] private PlayerStatus playerStatus;
 
+    private Vector3 direction; // 進行方向を保持
+
     void Start()
     {
         // 最初に生成された座標を記憶しておく
         startposition = transform.position;
-        Debug.Log(startposition);
     }
 
     // Update is called once per frame
@@ -32,16 +33,16 @@ public class BulletMove : MonoBehaviour
 
     void FixedUpdate()
     {
-        Debug.Log("AddForce実行中！ 力の向き: " + (transform.up * speed));
-        rb.linearVelocity = transform.up * speed;
+        rb.linearVelocity = direction * speed;
     }
 
-    public void SetUp(WeaponData weapondata, PlayerStatus playerstatus)
+    public void SetUp(WeaponData weapondata, PlayerStatus playerstatus, Vector3 fireDirection)
     {
         weaponData = weapondata;
         playerStatus = playerstatus;
+        direction = fireDirection.normalized;
 
-        Debug.Log("発射者 = " + playerStatus.name);
+        transform.rotation = Quaternion.LookRotation(direction);
     }
 
     private void OnTriggerEnter(Collider other)
@@ -52,14 +53,19 @@ public class BulletMove : MonoBehaviour
             return;
         }
 
+        // 敵との当たり判定
         if (other.TryGetComponent<PlayerStatus>(out PlayerStatus targetStatus))
         {
-            targetStatus.TakeDamage(weaponData.damage);
-            Destroy(gameObject);
+            // 自プレイヤーに当たってダメージを与えないようにする
+            if(playerStatus.playerID != targetStatus.playerID)
+            {
+                targetStatus.TakeDamage(weaponData.damage);
+                Destroy(gameObject);
+            }
         }
 
         // 静的なオブジェクトに当たった場合も弾を消す
-        if(other.gameObject.CompareTag("StaticObject"))
+        if (other.gameObject.CompareTag("StaticObject"))
         {
             Destroy(gameObject);
         }

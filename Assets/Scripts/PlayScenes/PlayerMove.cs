@@ -27,7 +27,7 @@ public class PlayerMove : MonoBehaviour
     {
         Vector2 input = Vector2.zero;
 
-        if (Keyboard.current != null)
+        if (Keyboard.current != null && playerStatus.canMove != false)
         {
             if (playerStatus.playerID == 1)
             {
@@ -58,6 +58,8 @@ public class PlayerMove : MonoBehaviour
             animator.SetFloat("Horizontal", localMove.x);
             animator.SetFloat("Vertical", localMove.z);
             animator.SetFloat("Speed", moveInput.magnitude);
+
+            Debug.Log("Horizontal: " + localMove.x + ", Vertical: " + localMove.z + ", Speed: " + moveInput.magnitude);
         }
 
         // マウス位置から向き先を取得
