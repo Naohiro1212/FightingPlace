@@ -59,7 +59,7 @@ public class PlayerMove : MonoBehaviour
             animator.SetFloat("Vertical", localMove.z);
             animator.SetFloat("Speed", moveInput.magnitude);
 
-            Debug.Log("Horizontal: " + localMove.x + ", Vertical: " + localMove.z + ", Speed: " + moveInput.magnitude);
+            //Debug.Log("Horizontal: " + localMove.x + ", Vertical: " + localMove.z + ", Speed: " + moveInput.magnitude);
         }
 
         // マウス位置から向き先を取得

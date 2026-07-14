@@ -12,6 +12,7 @@ public class WeaponData : ScriptableObject
 {
     public string attackName; // 攻撃名
     public AttackType attackType; // 攻撃種
+    public GameObject GunPrefab; // 銃の見た目
     public int damage; // ダメージ
     public float cooldown; // 攻撃間隔（近接なら殴る間隔、銃ならば発射間隔）
     public float range; // 範囲

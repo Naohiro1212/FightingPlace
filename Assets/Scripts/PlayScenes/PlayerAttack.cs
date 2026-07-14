@@ -3,6 +3,7 @@ using UnityEngine.InputSystem;
 
 public class PlayerAttack : MonoBehaviour
 {
+    [SerializeField] private WeaponData initialWeaponData;
     [SerializeField] private Weapon currentWeapon;
 
     private float lastAttackTime;
@@ -11,23 +12,32 @@ public class PlayerAttack : MonoBehaviour
     private void Start()
     {
         playerStatus = GetComponent<PlayerStatus>();
-        // 開始時は攻撃できない状態にする
-        playerStatus.canShoot = false;
+        playerStatus.canShoot = currentWeapon != null;
+
+        if (initialWeaponData != null)
+        {
+            EquipWeapon(initialWeaponData);
+        }
     }
 
     void Update()
     {
-        // 仮でマウスの左クリックで攻撃するようにしている。実際ではコントローラー
-        bool LeftClickPressed = Mouse.current.leftButton.wasPressedThisFrame;
-        if (Mouse.current != null && LeftClickPressed && playerStatus.canShoot)
+        if (Mouse.current == null || currentWeapon == null) return;
+
+        bool leftClickPressed = Mouse.current.leftButton.wasPressedThisFrame;
+        if (leftClickPressed && playerStatus.canShoot)
         {
-            currentWeapon.Attack();
+            TryAttack();
         }
     }
 
-    public void EquipWeapon(Weapon newWeapon)
+    public void EquipWeapon(WeaponData newWeaponData)
     {
-        currentWeapon = newWeapon;
+        if (newWeaponData == null || currentWeapon == null) return;
+
+        currentWeapon.SetUp(playerStatus, currentWeapon.FirePoint, newWeaponData);
+        
+        playerStatus.canShoot = true;
     }
 
     public void TryAttack()

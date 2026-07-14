@@ -1,3 +1,4 @@
+using NUnit.Framework;
 using UnityEngine;
 
 public class Weapon : MonoBehaviour
@@ -5,6 +6,48 @@ public class Weapon : MonoBehaviour
     [SerializeField] private WeaponData weaponData;
     [SerializeField] private PlayerStatus playerStatus;
     [SerializeField] private Transform firePoint;
+    [SerializeField] private Transform modelAnchor;
+    private GameObject currentModel;
+
+    public Transform FirePoint => firePoint;
+    public WeaponData WeaponData => weaponData;
+
+    public void SetUp(PlayerStatus playerStatus, Transform firePoint, WeaponData weaponData)
+    {
+        this.playerStatus = playerStatus;
+        this.firePoint = firePoint;
+        this.weaponData = weaponData;
+
+        ResetAmmo();
+        RefreshModel();
+    }
+
+    private void ResetAmmo()
+    {
+        if (weaponData != null && weaponData.attackType == AttackType.Gun)
+        {
+            currentAmmo = weaponData.maxAmmo;
+        }
+        else
+        {
+            currentAmmo = 0;
+        }
+    }
+
+    private void RefreshModel()
+    {
+        if (currentModel != null)
+        {
+            Destroy(currentModel);
+        }
+
+        if (weaponData != null && weaponData.GunPrefab != null && modelAnchor != null)
+        {
+            currentModel = Instantiate(weaponData.GunPrefab, modelAnchor);
+            currentModel.transform.localPosition = Vector3.zero;
+            currentModel.transform.localRotation = Quaternion.identity;
+        }
+    }
 
     [SerializeField] private int currentAmmo;
 
