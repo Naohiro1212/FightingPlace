@@ -11,5 +11,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/GameOver.unity
     guid: 64beafe1f5c5bc440a6890e248dfb957
+  - enabled: 1
+    path: Assets/Photon/FusionDemos/Fusion-Intro-Shared/Scenes/FusionIntroShared.unity
+    guid: 00000000000000000000000000000000
+  - enabled: 1
+    path: Assets/Photon/FusionMenu/FusionSampleMenu.unity
+    guid: 74c3b330900a03442806ce69f1fe5955
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

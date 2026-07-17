@@ -137,6 +137,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7966d979d9982a743a30e3b75a402b94, type: 3}
       insertIndex: -1
       addedObject: {fileID: -7871323892911163874}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 7966d979d9982a743a30e3b75a402b94, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: -6509811788537047955}
   m_SourcePrefab: {fileID: 100100000, guid: 7966d979d9982a743a30e3b75a402b94, type: 3}
 --- !u!1 &6838076848316457143 stripped
 GameObject:
@@ -195,6 +198,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 88540d6675dc88d4fb6217050f022f75, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAttack
+  initialWeaponData: {fileID: 0}
   currentWeapon: {fileID: 0}
 --- !u!114 &-7871323892911163874
 MonoBehaviour:
@@ -213,6 +217,25 @@ MonoBehaviour:
   currentHealth: 0
   canMove: 1
   canShoot: 1
+--- !u!114 &-6509811788537047955
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6838076848316457143}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Fusion.Runtime.dll::Fusion.NetworkObject
+  SortKey: 2939549390
+  SendPriority: 1
+  EnableInterpolation: 1
+  Flags: 262146
+  NestedObjects: []
+  NetworkedBehaviours: []
+  ForceRemoteRenderTimeframe: 0
 --- !u!4 &9070654510838114787 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -5781035051244817403, guid: 7966d979d9982a743a30e3b75a402b94, type: 3}
