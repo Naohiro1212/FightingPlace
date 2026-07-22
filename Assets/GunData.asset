@@ -19,6 +19,6 @@ MonoBehaviour:
   cooldown: 0.1
   range: 30
   Cost: 0
-  maxAmmo: 30
+  maxAmmo: 300
   bulletPrefab: {fileID: 1986974094116852479, guid: 60aac11c9ec969349b51e4c8eec51c31, type: 3}
   attackRadius: 0

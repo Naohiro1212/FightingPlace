@@ -1,7 +1,10 @@
 using NUnit.Framework;
 using UnityEngine;
+using Unity.Netcode;
+using System.Runtime.InteropServices.WindowsRuntime;
+using UnityEngine.LowLevel;
 
-public class Weapon : MonoBehaviour
+public class Weapon : NetworkBehaviour
 {
     [SerializeField] private WeaponData weaponData;
     [SerializeField] private PlayerStatus playerStatus;
@@ -95,20 +98,34 @@ public class Weapon : MonoBehaviour
         currentAmmo--;
         Debug.Log($"{weaponData.attackName} 発射");
 
-        if (weaponData.bulletPrefab != null && firePoint != null)
+        Vector3 fireDirection = playerStatus.transform.forward.normalized;
+        Vector3 spawnPosition = firePoint.position + fireDirection * 0.5f;
+
+        FireBulletServerRpc(spawnPosition, fireDirection, playerStatus.playerID);
+    }
+
+    [ServerRpc]
+    private void FireBulletServerRpc(Vector3 spawnPosition, Vector3 fireDirection, int shooterPlayerId)
+    {
+        if (weaponData == null || weaponData.bulletPrefab == null)
         {
-            Vector3 fireDirection = playerStatus.transform.forward.normalized;
-
-            Vector3 spawnPosition = firePoint.position + fireDirection * 0.5f;
-            Quaternion rotation = Quaternion.LookRotation(fireDirection);
-
-            GameObject bullet = Instantiate(weaponData.bulletPrefab, spawnPosition, rotation);
-
-            BulletMove bulletMove = bullet.GetComponent<BulletMove>();
-            if (bulletMove != null)
-            {
-                bulletMove.SetUp(weaponData, playerStatus, fireDirection);
-            }
+            return;
         }
+
+        Quaternion rotation = Quaternion.LookRotation(fireDirection);
+        GameObject bullet = Instantiate(weaponData.bulletPrefab, spawnPosition, rotation);
+
+        BulletMove bulletMove = bullet.GetComponent<BulletMove>();
+        NetworkObject bulletNetworkObject = bullet.GetComponent<NetworkObject>();
+
+        if (bulletMove == null || bulletNetworkObject == null)
+        {
+            Debug.LogError("弾PrefabにBulletMoveまたはNetworkObjectがありません");
+            Destroy(bullet);
+            return;
+        }
+
+        bulletMove.InitializeOnServer(weaponData, shooterPlayerId, fireDirection);
+        bulletNetworkObject.Spawn();
     }
 }

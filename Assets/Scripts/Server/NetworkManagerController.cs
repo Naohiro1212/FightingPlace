@@ -32,6 +32,9 @@ public class NetworkManagerController : MonoBehaviour
             NetworkManager.Singleton.StartServer();
         }
 
+        GUILayout.Label($"IP: {hostIpAddress}");
+        GUILayout.Label($"Port: {port}");
+
         GUILayout.EndArea();
     }
 
@@ -52,6 +55,14 @@ public class NetworkManagerController : MonoBehaviour
     {
         if (hasStarted) return;
 
+        var transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
+        if (transport == null)
+        {
+            Debug.LogError("UnityTransport が見つかりません");
+            return;
+        }
+
+        transport.SetConnectionData(hostIpAddress, port);
         NetworkManager.Singleton.StartHost();
         hasStarted = true;
     }

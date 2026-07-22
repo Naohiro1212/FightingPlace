@@ -8494,6 +8494,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ebe725abcdb74574aae0c4f297355ca5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMove
+  ShowTopMostFoldoutHeaderGroup: 1
   moveSpeed: 5
 --- !u!65 &2103616399
 BoxCollider:
@@ -8658,6 +8659,18 @@ PrefabInstance:
     - target: {fileID: -5749587099875982463, guid: d300c0bf479487242a44f35f7552549a, type: 3}
       propertyPath: m_IsKinematic
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -5384743551583756959, guid: d300c0bf479487242a44f35f7552549a, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 1217611982
+      objectReference: {fileID: 0}
+    - target: {fileID: -5384743551583756959, guid: d300c0bf479487242a44f35f7552549a, type: 3}
+      propertyPath: SceneMigrationSynchronization
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -5384743551583756959, guid: d300c0bf479487242a44f35f7552549a, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 2161083327
       objectReference: {fileID: 0}
     - target: {fileID: 238205697743134839, guid: d300c0bf479487242a44f35f7552549a, type: 3}
       propertyPath: m_CullingMode

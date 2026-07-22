@@ -1,7 +1,6 @@
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Windows;
 
 public class PlayerMove : NetworkBehaviour
 {
@@ -69,12 +68,12 @@ public class PlayerMove : NetworkBehaviour
             // Animator パラメータ更新
             if (animator != null)
             {
-                //Vector3 localMove = transform.InverseTransformDirection(moveInput);
-                //animator.SetFloat("Horizontal", localMove.x);
-                //animator.SetFloat("Vertical", localMove.z);
-                //animator.SetFloat("Speed", moveInput.magnitude);
+                Vector3 localMove = transform.InverseTransformDirection(moveInput);
+                animator.SetFloat("Horizontal", localMove.x);
+                animator.SetFloat("Vertical", localMove.z);
+                animator.SetFloat("Speed", moveInput.magnitude);
 
-                //Debug.Log("Horizontal: " + localMove.x + ", Vertical: " + localMove.z + ", Speed: " + moveInput.magnitude);
+                Debug.Log("Horizontal: " + localMove.x + ", Vertical: " + localMove.z + ", Speed: " + moveInput.magnitude);
             }
 
             // マウス位置から向き先を取得
@@ -103,25 +102,8 @@ public class PlayerMove : NetworkBehaviour
         animator.SetFloat("Vertical", localMove.z);
         animator.SetFloat("Speed", moveInput.magnitude);
 
-        // ローカルで即座に動かす(予測)
         Move(moveInput);
         Rotate(target - transform.position);
-
-        // サーバーにも同じ入力を送る
-        MoveServerRpc(moveInput.x, moveInput.z);
-    }
-
-    [ServerRpc]
-    private void MoveServerRpc(float x, float z)
-    {
-        input = new Vector3(x, 0, z);
-
-        Move(input);
-        Rotate(target - transform.position);
-
-        animator.SetFloat("Speed", input.magnitude);
-        animator.SetFloat("Horizontal", input.x);
-        animator.SetFloat("Vertical", input.z);
     }
 
     private void Move(Vector3 input)
