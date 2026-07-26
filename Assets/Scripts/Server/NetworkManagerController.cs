@@ -8,9 +8,22 @@ public class NetworkManagerController : MonoBehaviour
     [SerializeField] private ushort port = 7777;
     private bool hasStarted = false;
 
+    private string hostIpAddressInput = string.Empty;
+    private string statusMessage = string.Empty;
+
+    private void Awake()
+    {
+        hostIpAddressInput = hostIpAddress;
+    }
+
     private void OnGUI()
     {
         GUILayout.BeginArea(new Rect(10, 10, 300, 300));
+
+        GUILayout.Label("接続先IPアドレス");
+        hostIpAddressInput = GUILayout.TextField(hostIpAddressInput);
+
+        GUILayout.Space(10);
 
         if (GUILayout.Button("Auto Start"))
         {

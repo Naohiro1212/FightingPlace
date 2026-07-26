@@ -616,7 +616,7 @@ MonoBehaviour:
   m_MaxConnectAttempts: 60
   m_DisconnectTimeoutMS: 30000
   ConnectionData:
-    Address: 192.168.42.16
+    Address: 192.168.11.58
     Port: 7777
     ServerListenAddress: 127.0.0.1
     ClientBindPort: 0
@@ -636,7 +636,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 46575682ddd7e0342bf5ffafbe6f6150, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  hostIpAddress: 192.168.42.16
+  hostIpAddress: 192.168.11.58
   port: 7777
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
