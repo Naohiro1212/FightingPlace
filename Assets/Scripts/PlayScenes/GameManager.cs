@@ -26,7 +26,6 @@ public class GameManager : MonoBehaviour
             return;
         }
         Instance = this;
-
         // 正しいプレイヤーの数が設定されているか確認
         if (playerStatuses.Length != 2)
         {
@@ -43,6 +42,35 @@ public class GameManager : MonoBehaviour
         if (fadeObject == null)
         {
             Debug.Log("fadeObjectが設定されていません");
+        }
+    }
+
+    private void Start()
+    {
+        StartCoroutine(FindPlayersCoroutine());
+    }
+
+    private IEnumerator FindPlayersCoroutine()
+    {
+        while (true)
+        {
+            playerStatuses = FindObjectsByType<PlayerStatus>();
+            if (playerStatuses != null && playerStatuses.Length >= 2)
+            {
+                break;
+            }
+
+            yield return null;
+        }
+
+        for (int i = 0; i < playerStatuses.Length; i++)
+        {
+            Debug.Log(playerStatuses[i].playerID);
+        }
+
+        if (playerStatuses.Length != 2)
+        {
+            Debug.Log("正しいプレイヤーの数設定されていません");
         }
     }
 

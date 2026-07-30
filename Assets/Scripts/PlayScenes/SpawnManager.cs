@@ -4,13 +4,13 @@ using UnityEngine;
 public class SpawnManager : MonoBehaviour
 {
     [SerializeField] private Transform[] spawnPoints;
-    [SerializeField] private Transform player1;
-    [SerializeField] private Transform player2;
+    [SerializeField] private GameObject[] players;
 
     private int minPoint = 2;
 
     private void Start()
     {
+        SearchPlayers();
         SpawnPlayers();
     }
 
@@ -30,7 +30,13 @@ public class SpawnManager : MonoBehaviour
         while (index1 == index2);
 
         // 埋まってしまわないように想定した位置より少し上に生成
-        player1.position = spawnPoints[index1].position + Vector3.up * 1.5f;
-        player2.position = spawnPoints[index2].position + Vector3.up * 1.5f;
+        players[0].transform.position = spawnPoints[index1].position + Vector3.up * 1.5f;
+        players[1].transform.position = spawnPoints[index2].position + Vector3.up * 1.5f;
+    }
+
+    // 通信でつながったプレイヤーがプレイシーンに来るので、それをとらえて位置を決める
+    private void SearchPlayers()
+    {
+        players = GameObject.FindGameObjectsWithTag("Player");
     }
 }
