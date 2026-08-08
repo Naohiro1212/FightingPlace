@@ -1,9 +1,10 @@
 using System.Collections;
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class GameManager : MonoBehaviour
+public class GameManager : NetworkBehaviour
 {
     public static GameManager Instance { get; private set; }
 
@@ -15,6 +16,8 @@ public class GameManager : MonoBehaviour
 
     // シーン遷移用のFadeオブジェクト
     [SerializeField] private GameObject fadeObject;
+
+    private string battleSceneName = "GameOver"; // 戦闘シーンの名前を指定
 
     public static int winnerId { get; private set; } = 0; // 勝者のIDを保持する変数
 
@@ -103,7 +106,7 @@ public class GameManager : MonoBehaviour
         Fade fade = fadeObject.GetComponent<Fade>();
         fade.FadeIn(1f, () =>
         {
-            SceneManager.LoadScene("GameOver");
+            NetworkManager.Singleton.SceneManager.LoadScene(battleSceneName, LoadSceneMode.Single);
         });
     }
 

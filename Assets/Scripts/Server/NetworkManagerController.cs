@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 
 public class NetworkManagerController : MonoBehaviour
 {
-    [SerializeField] private string hostIpAddress = "192.168.42.16";
+    [SerializeField] private string hostIpAddress = "192.168.11.58";
     [SerializeField] private ushort port = 7777;
     [SerializeField] private string battleSceneName = "SampleScene";
     [SerializeField] private int requiredPlayerCount = 2;

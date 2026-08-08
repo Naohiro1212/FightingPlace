@@ -32,6 +32,10 @@ public class SpawnManager : MonoBehaviour
         // 埋まってしまわないように想定した位置より少し上に生成
         players[0].transform.position = spawnPoints[index1].position + Vector3.up * 1.5f;
         players[1].transform.position = spawnPoints[index2].position + Vector3.up * 1.5f;
+
+        // プレイヤーIDを設定
+        players[0].GetComponent<PlayerStatus>().playerID = 1;
+        players[1].GetComponent<PlayerStatus>().playerID = 2;
     }
 
     // 通信でつながったプレイヤーがプレイシーンに来るので、それをとらえて位置を決める

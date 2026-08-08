@@ -1,3 +1,4 @@
+using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -7,25 +8,34 @@ public class CameraManager : MonoBehaviour
 
     private void Start()
     {
-        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        StartCoroutine(BindCameraCoroutine());
+    }
 
-        foreach (var playerObj in players)
+    private IEnumerator BindCameraCoroutine()
+    {
+        while (true)
         {
-            NetworkObject networkObject = playerObj.GetComponent<NetworkObject>();
+            GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
 
-            if (networkObject != null && networkObject.IsOwner)
+            for (int i = 0; i < players.Length; i++)
             {
-                // 自分自身のプレイヤーだけをカメラに追従させる
-                Transform target = playerObj.transform;
+                NetworkObject networkObject = players[i].GetComponent<NetworkObject>();
 
-                foreach (var vcam in virtualCameras)
+                if (networkObject != null && networkObject.IsOwner)
                 {
-                    vcam.Follow = target;
-                    vcam.LookAt = target;
-                }
+                    Transform target = players[i].transform;
 
-                break; // 自分の分が見つかったら終了
+                    for (int j = 0; j < virtualCameras.Length; j++)
+                    {
+                        virtualCameras[j].Follow = target;
+                        virtualCameras[j].LookAt = target;
+                    }
+
+                    yield break;
+                }
             }
+
+            yield return null;
         }
     }
 }

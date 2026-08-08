@@ -11,7 +11,6 @@ public class PlayerMove : NetworkBehaviour
     private Vector3 target;
     private Animator animator;
     private PlayerStatus playerStatus;
-    private Vector3 lastPosition;
 
     private void Awake()
     {
@@ -22,85 +21,29 @@ public class PlayerMove : NetworkBehaviour
         if (playerStatus == null) Debug.Log("playerStatusが入っていません");
 
         animator = GetComponent<Animator>();
-        if(animator == null) Debug.Log("animatorが入っていません");
+        if (animator == null) Debug.Log("animatorが入っていません");
     }
 
     public override void OnNetworkSpawn()
     {
-        lastPosition = transform.position;
+        target = transform.position + transform.forward;
     }
 
     private void Update()
     {
-        //if (IsOwner)
-        //{
-        //    Vector2 input = Vector2.zero;
-
-        //    if (Keyboard.current != null && playerStatus.canMove != false)
-        //    {
-        //        if (playerStatus.playerID == 1)
-        //        {
-        //            if (Keyboard.current.aKey.isPressed) input.x -= 1f;
-        //            if (Keyboard.current.dKey.isPressed) input.x += 1f;
-        //            if (Keyboard.current.sKey.isPressed) input.y -= 1f;
-        //            if (Keyboard.current.wKey.isPressed) input.y += 1f;
-        //        }
-        //        else if (playerStatus.playerID == 2)
-        //        {
-        //            if (Keyboard.current.leftArrowKey.isPressed) input.x -= 1f;
-        //            if (Keyboard.current.rightArrowKey.isPressed) input.x += 1f;
-        //            if (Keyboard.current.downArrowKey.isPressed) input.y -= 1f;
-        //            if (Keyboard.current.upArrowKey.isPressed) input.y += 1f;
-        //        }
-        //    }
-
-        //    // 正規化して斜め移動が速くなりすぎないようにする
-        //    input = input.normalized;
-
-        //    // Vector2 → Vector3
-        //    moveInput = new Vector3(input.x, 0f, input.y);
-
-        //    // Animator パラメータ更新
-        //    if (animator != null)
-        //    {
-        //        Vector3 localMove = transform.InverseTransformDirection(moveInput);
-        //        animator.SetFloat("Horizontal", localMove.x);
-        //        animator.SetFloat("Vertical", localMove.z);
-        //        animator.SetFloat("Speed", moveInput.magnitude);
-
-        //        Debug.Log("Horizontal: " + localMove.x + ", Vertical: " + localMove.z + ", Speed: " + moveInput.magnitude);
-        //    }
-
-        //    // マウス位置から向き先を取得
-        //    if (Mouse.current != null && Camera.main != null)
-        //    {
-        //        Vector2 mousePos = Mouse.current.position.ReadValue();
-        //        Ray ray = Camera.main.ScreenPointToRay(mousePos);
-
-        //        Plane groundPlane = new Plane(Vector3.up, transform.position);
-
-        //        if (groundPlane.Raycast(ray, out float distance))
-        //        {
-        //            target = ray.GetPoint(distance);
-        //        }
-        //    }
-        //}
-
         if (IsOwner)
         {
             UpdateOwnerInput();
             UpdateOwnerLookTarget();
+            UpdateAnimator();
         }
-
-        UpdateAnimator();
-        lastPosition = transform.position;
     }
 
     private void FixedUpdate()
     {
+        if (!IsSpawned) return;
         if (!IsOwner) return;
         if (playerStatus == null || !playerStatus.canMove) return;
-        if (!IsSpawned) return;
 
         Move(moveInput);
         Rotate(target - transform.position);
@@ -143,26 +86,16 @@ public class PlayerMove : NetworkBehaviour
             return;
         }
 
-        Vector3 delta = transform.position - lastPosition;
-        delta.y = 0f;
+        Vector3 localMove = transform.InverseTransformDirection(moveInput);
 
-        float deltaTime = Time.deltaTime;
-        if (deltaTime <= 0f)
-        {
-            deltaTime = 0.0001f;
-        }
-
-        Vector3 velocity = delta / deltaTime;
-        Vector3 localVelocity = transform.InverseTransformDirection(velocity);
-
-        animator.SetFloat("Horizontal", localVelocity.x / moveSpeed);
-        animator.SetFloat("Vertical", localVelocity.z / moveSpeed);
-        animator.SetFloat("Speed", Mathf.Clamp01(velocity.magnitude / moveSpeed));
+        animator.SetFloat("Horizontal", localMove.x, 0.1f, Time.deltaTime);
+        animator.SetFloat("Vertical", localMove.z, 0.1f, Time.deltaTime);
+        animator.SetFloat("Speed", moveInput.magnitude, 0.1f, Time.deltaTime);
     }
 
-    private void Move(Vector3 input)
+    private void Move(Vector3 inputDirection)
     {
-        Vector3 nextPosition = rb.position + input * moveSpeed * Time.fixedDeltaTime;
+        Vector3 nextPosition = rb.position + inputDirection * moveSpeed * Time.fixedDeltaTime;
         rb.MovePosition(nextPosition);
     }
 

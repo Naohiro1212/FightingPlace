@@ -638,6 +638,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   hostIpAddress: 192.168.11.58
   port: 7777
+  battleSceneName: SampleScene
+  requiredPlayerCount: 2
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

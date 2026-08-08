@@ -8,7 +8,6 @@ public class BulletMove : NetworkBehaviour
 
     [SerializeField] private WeaponData weaponData;
     [SerializeField] private Rigidbody rb;
-    [SerializeField] private PlayerStatus playerStatus;
 
     private Vector3 direction;
     private int shooterPlayerId;
@@ -31,6 +30,7 @@ public class BulletMove : NetworkBehaviour
         if (IsServer)
         {
             startPosition = transform.position;
+            Debug.Log($"[Bullet] Spawned on Server: {name}");
         }
     }
 
@@ -42,52 +42,63 @@ public class BulletMove : NetworkBehaviour
         startPosition = transform.position;
 
         transform.rotation = Quaternion.LookRotation(direction) * Quaternion.Euler(0f, 90f, 0f);
+
+        Debug.Log($"[Bullet] Init shooterPlayerId={shooterPlayerId}, direction={direction}");
     }
 
-    void Update()
+    private void Update()
     {
-        float currentDistance = Vector3.Distance(startPosition, transform.position);
-
-        if (currentDistance > weaponData.range)
-        {
-            NetworkObject.Despawn();
-        }
-    }
-
-    void FixedUpdate()
-    {
-        rb.linearVelocity = direction * speed;
-    }
-
-    public void SetUp(WeaponData weapondata, PlayerStatus playerstatus, Vector3 fireDirection)
-    {
-        weaponData = weapondata;
-        playerStatus = playerstatus;
-        direction = fireDirection.normalized;
-
-        transform.rotation = Quaternion.LookRotation(direction) * Quaternion.Euler(0f, 90f, 0f);
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (!IsServer) return;
-        if (!(other is BoxCollider))
+        if (!IsServer || weaponData == null)
         {
             return;
         }
 
-        if (other.TryGetComponent<PlayerStatus>(out PlayerStatus targetStatus))
+        float currentDistance = Vector3.Distance(startPosition, transform.position);
+        if (currentDistance > weaponData.range)
+        {
+            Debug.Log("[Bullet] Range over -> Despawn");
+            NetworkObject.Despawn();
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        if (!IsServer || rb == null)
+        {
+            return;
+        }
+
+        rb.linearVelocity = direction * speed;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        Debug.Log($"[Bullet] Trigger with: {other.name}");
+        Debug.Log($"[Bullet] tag={other.tag}, layer={LayerMask.LayerToName(other.gameObject.layer)}, root={other.transform.root.name}");
+
+        PlayerStatus targetStatus = other.GetComponentInParent<PlayerStatus>();
+        Debug.Log($"[Bullet] targetStatus={(targetStatus != null ? targetStatus.name : "null")}");
+
+        if (!IsServer || weaponData == null)
+        {
+            return;
+        }
+
+        if (targetStatus != null)
         {
             if (shooterPlayerId != targetStatus.playerID)
             {
                 targetStatus.TakeDamage(weaponData.damage);
+                Debug.Log("[Bullet] Damage applied -> Despawn");
                 NetworkObject.Despawn();
-                return;
             }
+
+            return;
         }
 
         if (other.gameObject.CompareTag("StaticObject"))
         {
+            Debug.Log("[Bullet] Hit StaticObject -> Despawn");
             NetworkObject.Despawn();
         }
     }
