@@ -43,7 +43,7 @@ public class PlayerMove : NetworkBehaviour
     {
         if (!IsSpawned) return;
         if (!IsOwner) return;
-        if (playerStatus == null || !playerStatus.canMove) return;
+        if (playerStatus == null || !playerStatus.canMove.Value) return;
 
         Move(moveInput);
         Rotate(target - transform.position);
@@ -51,18 +51,70 @@ public class PlayerMove : NetworkBehaviour
 
     private void UpdateOwnerInput()
     {
-        Vector2 input = Vector2.zero;
-
-        if (Keyboard.current != null && playerStatus != null && playerStatus.canMove)
+        if (playerStatus == null ||
+        !playerStatus.canMove.Value)
         {
-            if (Keyboard.current.aKey.isPressed) input.x -= 1f;
-            if (Keyboard.current.dKey.isPressed) input.x += 1f;
-            if (Keyboard.current.sKey.isPressed) input.y -= 1f;
-            if (Keyboard.current.wKey.isPressed) input.y += 1f;
+            moveInput = Vector3.zero;
+            return;
         }
 
-        input = input.normalized;
-        moveInput = new Vector3(input.x, 0f, input.y);
+        Vector2 input = Vector2.zero;
+
+        // =========================
+        // キーボード
+        // =========================
+        if (Keyboard.current != null)
+        {
+            if (Keyboard.current.aKey.isPressed)
+            {
+                input.x -= 1f;
+            }
+
+            if (Keyboard.current.dKey.isPressed)
+            {
+                input.x += 1f;
+            }
+
+            if (Keyboard.current.sKey.isPressed)
+            {
+                input.y -= 1f;
+            }
+
+            if (Keyboard.current.wKey.isPressed)
+            {
+                input.y += 1f;
+            }
+        }
+
+        // =========================
+        // コントローラー
+        // =========================
+        if (Gamepad.current != null)
+        {
+            Vector2 controllerInput =
+                Gamepad.current.leftStick.ReadValue();
+
+            // スティックを動かしていない場合は十字キーを使用
+            if (controllerInput.sqrMagnitude < 0.01f)
+            {
+                controllerInput =
+                    Gamepad.current.dpad.ReadValue();
+            }
+
+            // コントローラー入力があれば優先する
+            if (controllerInput.sqrMagnitude >= 0.01f)
+            {
+                input = controllerInput;
+            }
+        }
+
+        input = Vector2.ClampMagnitude(input, 1f);
+
+        moveInput = new Vector3(
+            input.x,
+            0f,
+            input.y
+        );
     }
 
     private void UpdateOwnerLookTarget()

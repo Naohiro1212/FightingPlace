@@ -8,114 +8,141 @@ public class GameManager : NetworkBehaviour
 {
     public static GameManager Instance { get; private set; }
 
-    // プレイヤーの生死を確認するための配列
     [SerializeField] private PlayerStatus[] playerStatuses;
-
-    // プレイ画面で一時的に勝利者を表示する為のUIテキスト
     [SerializeField] private TextMeshProUGUI resultText;
-
-    // シーン遷移用のFadeオブジェクト
     [SerializeField] private GameObject fadeObject;
 
-    private string battleSceneName = "GameOver"; // 戦闘シーンの名前を指定
+    [SerializeField] private string battleSceneName = "GameOver";
 
-    public static int winnerId { get; private set; } = 0; // 勝者のIDを保持する変数
+    public NetworkVariable<int> WinnerId = new NetworkVariable<int>(
+        0,
+        NetworkVariableReadPermission.Everyone,
+        NetworkVariableWritePermission.Server);
 
     void Awake()
     {
         if (Instance != null && Instance != this)
         {
-            Destroy(gameObject); // 既に存在するなら自分を破棄
+            Destroy(gameObject);
             return;
         }
+
         Instance = this;
-        // 正しいプレイヤーの数が設定されているか確認
-        if (playerStatuses.Length != 2)
-        {
-            Debug.Log("正しいプレイヤーの数設定されていません");
-        }
+        // NGO環境では、NetworkObjectが付いているオブジェクトにDontDestroyOnLoadを直接使うのは非推奨。
+        // 下の OnNetworkSpawn の DestroyWithScene = false に管理を任せます。
+    }
 
-        // resultTextが設定されているか確認
-        if (resultText == null)
-        {
-            Debug.Log("resultTextが設定されていません");
-        }
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
 
-        // FadeObjectが設定されているか確認
-        if (fadeObject == null)
+        if (NetworkObject != null)
         {
-            Debug.Log("fadeObjectが設定されていません");
+            NetworkObject.DestroyWithScene = false; // シーン遷移後も維持する
         }
     }
 
     private void Start()
     {
-        StartCoroutine(FindPlayersCoroutine());
+        // プレイヤーの検索・管理はサーバー側だけで十分
+        if (IsServer)
+        {
+            StartCoroutine(FindPlayersCoroutine());
+        }
+
+        //WinnerIdを保存するので、DontDestroyOnLoadにする
+        DontDestroyOnLoad(gameObject);
     }
 
     private IEnumerator FindPlayersCoroutine()
     {
         while (true)
         {
+            // Unity 6向けにソートモードを明記（エラー防止）
             playerStatuses = FindObjectsByType<PlayerStatus>();
             if (playerStatuses != null && playerStatuses.Length >= 2)
             {
                 break;
             }
-
             yield return null;
-        }
-
-        for (int i = 0; i < playerStatuses.Length; i++)
-        {
-            Debug.Log(playerStatuses[i].playerID);
-        }
-
-        if (playerStatuses.Length != 2)
-        {
-            Debug.Log("正しいプレイヤーの数設定されていません");
         }
     }
 
     public void OnPlayerDown(int downedPlayerId)
     {
-        // downedPlayerIdが1なら2が勝者、downedPlayerIdが2なら1が勝者
-        winnerId = (downedPlayerId == 1) ? 2 : 1;
-        ShowResult(winnerId);
+        if (!IsServer) return;
 
-        // 2.5秒後にシーン遷移演出を開始
-        StartCoroutine(FinishAfterDelay());
+        int winner = (downedPlayerId == 1) ? 2 : 1;
+        WinnerId.Value = winner;
 
-        // プレイヤーをどちらも動けない状態にする
-        for (int i = 0; i < playerStatuses.Length; i++)
+        try
         {
-            playerStatuses[i].canMove = false;
-            playerStatuses[i].canShoot = false;
+            ShowResultClientRpc(winner);
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"[GameManager] ShowResultClientRpc failed: {e}");
+        }
+
+        if (playerStatuses != null)
+        {
+            for (int i = 0; i < playerStatuses.Length; i++)
+            {
+                playerStatuses[i].canMove.Value = false;
+                playerStatuses[i].canShoot.Value = false;
+            }
+        }
+
+        StartCoroutine(FinishAfterDelay());
+    }
+
+    [ClientRpc]
+    private void ShowResultClientRpc(int winner)
+    {
+        if (resultText != null)
+        {
+            resultText.text = "Player " + winner + " wins!";
+            resultText.fontSize = 96;
         }
     }
 
-    private void ShowResult(int winnerId)
+    private IEnumerator FinishAfterDelay()
     {
-        resultText.text = "Player " + winnerId + " wins!";
-        resultText.fontSize = 96;
-    }
-
-    private void CallScene()
-    {
-        // Fadeを取得し、FadeInする
-        Fade fade = fadeObject.GetComponent<Fade>();
-        fade.FadeIn(1f, () =>
-        {
-            NetworkManager.Singleton.SceneManager.LoadScene(battleSceneName, LoadSceneMode.Single);
-        });
-    }
-
-    IEnumerator FinishAfterDelay()
-    {
-        // 2.5秒間待機する
+        // 2.5秒間テキストを見せる
         yield return new WaitForSeconds(2.5f);
 
-        // シーン遷移開始
-        CallScene();
+        // 全クライアントでフェードを開始
+        StartFadeClientRpc();
+
+        // フェード完了（1.0秒）を待つ
+        yield return new WaitForSeconds(1.0f);
+
+        if (IsServer)
+        {
+            LoadNextScene();
+        }
+    }
+
+    [ClientRpc]
+    private void StartFadeClientRpc()
+    {
+        if (fadeObject != null)
+        {
+            Fade fade = fadeObject.GetComponent<Fade>();
+            if (fade != null)
+            {
+                fade.FadeIn(1f, null);
+            }
+        }
+    }
+
+    private void LoadNextScene()
+    {
+        //if (!IsServer) return;
+
+        if (NetworkManager.Singleton != null && NetworkManager.Singleton.SceneManager != null)
+        {
+            NetworkManager.Singleton.SceneManager.LoadScene(battleSceneName, LoadSceneMode.Single);
+        }
     }
 }

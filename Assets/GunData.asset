@@ -22,3 +22,6 @@ MonoBehaviour:
   maxAmmo: 300
   bulletPrefab: {fileID: 1986974094116852479, guid: 60aac11c9ec969349b51e4c8eec51c31, type: 3}
   attackRadius: 0
+  Effect: {fileID: 0}
+  fireSound: {fileID: -3733280903833246588, guid: 6c7859e017cea78489d643b95bb38ec3, type: 3}
+  fireLight: {fileID: 0}

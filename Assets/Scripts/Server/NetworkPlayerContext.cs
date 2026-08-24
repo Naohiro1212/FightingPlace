@@ -40,7 +40,7 @@ public class NetworkPlayerContext : NetworkBehaviour
     {
         if(playerStatus != null)
         {
-            playerStatus.playerID = value;
+            playerStatus.playerID.Value = value;
         }
     }
 

@@ -86,7 +86,10 @@ public class BulletMove : NetworkBehaviour
 
         if (targetStatus != null)
         {
-            if (shooterPlayerId != targetStatus.playerID)
+            // playerID ‚ª NetworkVariable<int> ‚É‚È‚Á‚½‚Ì‚Å .Value ‚Å”äŠr‚·‚é
+            Debug.Log($"[Bullet] shooterPlayerId={shooterPlayerId}, targetStatus.playerID={targetStatus.playerID.Value}");
+
+            if (shooterPlayerId != targetStatus.playerID.Value)
             {
                 targetStatus.TakeDamage(weaponData.damage);
                 Debug.Log("[Bullet] Damage applied -> Despawn");

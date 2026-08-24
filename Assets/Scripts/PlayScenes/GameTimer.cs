@@ -15,12 +15,6 @@ public class GameTimer : MonoBehaviour
     private void Start()
     {
         StartCoroutine(FindPlayersCoroutine());
-
-        // 開始時はプレイヤーは全員動けないようにする
-        for (int i = 0; i < playerStatuses.Length; i++)
-        {
-            playerStatuses[i].canMove = false;
-        }
     }
 
     private IEnumerator FindPlayersCoroutine()
@@ -28,6 +22,7 @@ public class GameTimer : MonoBehaviour
         while (true)
         {
             playerStatuses = FindObjectsByType<PlayerStatus>();
+
             if (playerStatuses != null && playerStatuses.Length >= 2)
             {
                 break;
@@ -38,12 +33,23 @@ public class GameTimer : MonoBehaviour
 
         for (int i = 0; i < playerStatuses.Length; i++)
         {
-            Debug.Log(playerStatuses[i].playerID);
+            Debug.Log(playerStatuses[i].playerID.Value);
         }
 
         if (playerStatuses.Length != 2)
         {
             Debug.Log("正しいプレイヤーの数設定されていません");
+        }
+
+        // NetworkVariableの変更はサーバーのみ
+        if (Unity.Netcode.NetworkManager.Singleton != null &&
+            Unity.Netcode.NetworkManager.Singleton.IsServer)
+        {
+            for (int i = 0; i < playerStatuses.Length; i++)
+            {
+                playerStatuses[i].canMove.Value = false;
+                playerStatuses[i].canShoot.Value = false;
+            }
         }
     }
 
@@ -69,10 +75,14 @@ public class GameTimer : MonoBehaviour
     {
         started = true;
 
-        for(int i = 0;i < playerStatuses.Length; i++)
+        if (Unity.Netcode.NetworkManager.Singleton != null &&
+            Unity.Netcode.NetworkManager.Singleton.IsServer)
         {
-            playerStatuses[i].canMove = true;
-            playerStatuses[i].canShoot = true;
+            for (int i = 0; i < playerStatuses.Length; i++)
+            {
+                playerStatuses[i].canMove.Value = true;
+                playerStatuses[i].canShoot.Value = true;
+            }
         }
 
         // 少し後に文字を消す

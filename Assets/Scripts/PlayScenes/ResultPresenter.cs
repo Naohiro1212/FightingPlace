@@ -5,9 +5,19 @@ using TMPro;
 public class ResultPresenter : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI resultText;
+
     void Start()
     {
-        int winner = GameManager.winnerId;
+        // GameManager は DontDestroyOnLoad + DestroyWithScene=false で
+        // バトルシーンからこのシーンまで生き残っているので、
+        // WinnerId.Value は全クライアントで同じ値になっている
+        if (GameManager.Instance == null)
+        {
+            Debug.Log("GameManager.Instance がありません（シーンをまたいで残っていない可能性）");
+            return;
+        }
+
+        int winner = GameManager.Instance.WinnerId.Value;
 
         // 勝者に応じてテキストを書き換える
         if (winner == 1)
@@ -18,11 +28,5 @@ public class ResultPresenter : MonoBehaviour
         {
             resultText.text = "Player 2 win!";
         }
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
     }
 }

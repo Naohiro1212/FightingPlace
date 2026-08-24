@@ -5,7 +5,7 @@ public class MatchSession : MonoBehaviour
     public static MatchSession Instance { get; private set; }
 
     public string BattleSceneName { get; private set; } = "SampleScene";
-    public string HostIpAddress { get; private set; } = "192.168.42.16";
+    public string HostIpAddress { get; private set; } = "192.168.11.58";
     public ushort Port { get; private set; } = 7777;
     public int LocalPlayerSlot { get; private set; } = -1;
 

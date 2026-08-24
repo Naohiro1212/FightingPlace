@@ -17,7 +17,7 @@ public class PlayerAttack : NetworkBehaviour
             return;
         }
 
-        playerStatus.canShoot = currentWeapon != null;
+        playerStatus.canShoot.Value = currentWeapon != null;
 
         if (initialWeaponData != null && currentWeapon != null)
         {
@@ -28,7 +28,7 @@ public class PlayerAttack : NetworkBehaviour
     private void Start()
     {
         playerStatus = GetComponent<PlayerStatus>();
-        playerStatus.canShoot = currentWeapon != null;
+        playerStatus.canShoot.Value = currentWeapon != null;
 
         if (initialWeaponData != null)
         {
@@ -48,7 +48,7 @@ public class PlayerAttack : NetworkBehaviour
             return;
         }
 
-        if (Mouse.current.leftButton.wasPressedThisFrame && playerStatus.canShoot)
+        if (Mouse.current.leftButton.wasPressedThisFrame && playerStatus.canShoot.Value)
         {
             TryAttack();
         }
@@ -62,7 +62,7 @@ public class PlayerAttack : NetworkBehaviour
         }
 
         currentWeapon.SetUp(playerStatus, currentWeapon.FirePoint, newWeaponData);
-        playerStatus.canShoot = true;
+        playerStatus.canShoot.Value = true;
     }
 
     public void TryAttack()
