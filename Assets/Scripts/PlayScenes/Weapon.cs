@@ -16,9 +16,14 @@ public class Weapon : NetworkBehaviour
     [Header("Effect")]
     [SerializeField] private ParticleSystem muzzleFire;
     [SerializeField] private AudioSource fireSound;
+    [SerializeField] private AudioSource reloadSound;
 
     [Header("Ammo")]
     [SerializeField] private int currentAmmo;
+
+    [Header("ReloadTime")]
+    [SerializeField] private float reloadTime;
+    private float reloadTimer = 0.0f;
 
     private GameObject currentModel;
     private ParticleSystem muzzleFireInstance;
@@ -68,6 +73,34 @@ public class Weapon : NetworkBehaviour
         else
         {
             currentAmmo = 0;
+        }
+
+        reloadTime = WeaponData.reloadTime;
+    }
+
+    private void Update()
+    {
+        if (weaponData == null)
+        {
+            return;
+        }
+
+        if (currentAmmo <= 0)
+        {
+            reloadTimer += Time.deltaTime;
+
+            if (reloadTimer >= reloadTime)
+            {
+                reloadSound.PlayOneShot(reloadSound.clip, 1.0f);
+                currentAmmo = weaponData.maxAmmo;
+                reloadTimer = 0.0f;
+
+                Debug.Log("リロード完了");
+            }
+        }
+        else
+        {
+            reloadTimer = 0.0f;
         }
     }
 
@@ -322,7 +355,7 @@ public class Weapon : NetworkBehaviour
 
         fireSound.PlayOneShot(
             fireSound.clip,
-            1.0f
+            0.8f
         );
     }
 

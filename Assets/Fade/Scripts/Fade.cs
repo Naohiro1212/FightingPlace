@@ -66,7 +66,8 @@ public class Fade : MonoBehaviour
 
 		var endFrame = new WaitForEndOfFrame ();
 
-		while (Time.timeSinceLevelLoad <= endTime) {
+		while (Time.timeSinceLevelLoad <= endTime)
+		{
 			cutoutRange = (endTime - Time.timeSinceLevelLoad) / time;
 			fade.Range = cutoutRange;
 			yield return endFrame;
@@ -74,7 +75,8 @@ public class Fade : MonoBehaviour
 		cutoutRange = 0;
 		fade.Range = cutoutRange;
 
-		if (action != null) {
+		if (action != null)
+		{
 			action ();
 		}
 	}
@@ -85,7 +87,8 @@ public class Fade : MonoBehaviour
 		
 		var endFrame = new WaitForEndOfFrame ();
 
-		while (Time.timeSinceLevelLoad <= endTime) {
+		while (Time.timeSinceLevelLoad <= endTime)
+		{
 			cutoutRange = 1 - ((endTime - Time.timeSinceLevelLoad) / time);
 			fade.Range = cutoutRange;
 			yield return endFrame;
@@ -93,7 +96,8 @@ public class Fade : MonoBehaviour
 		cutoutRange = 1;
 		fade.Range = cutoutRange;
 
-		if (action != null) {
+		if (action != null)
+		{
 			action ();
 		}
 	}

@@ -15,13 +15,11 @@ MonoBehaviour:
   attackName: GunAttack
   attackType: 1
   GunPrefab: {fileID: 3852799265655734254, guid: 6c7859e017cea78489d643b95bb38ec3, type: 3}
-  damage: 10
-  cooldown: 0.1
+  damage: 5
+  cooldown: 0.25
   range: 30
   Cost: 0
-  maxAmmo: 300
+  maxAmmo: 30
   bulletPrefab: {fileID: 1986974094116852479, guid: 60aac11c9ec969349b51e4c8eec51c31, type: 3}
+  reloadTime: 1.5
   attackRadius: 0
-  Effect: {fileID: 0}
-  fireSound: {fileID: -3733280903833246588, guid: 6c7859e017cea78489d643b95bb38ec3, type: 3}
-  fireLight: {fileID: 0}

@@ -48,7 +48,7 @@ public class PlayerAttack : NetworkBehaviour
             return;
         }
 
-        if (Mouse.current.leftButton.wasPressedThisFrame && playerStatus.canShoot.Value)
+        if (Mouse.current.leftButton.isPressed && playerStatus.canShoot.Value)
         {
             TryAttack();
         }

@@ -7,7 +7,7 @@ using TMPro;
 public class NetworkManagerController : MonoBehaviour
 {
     [Header("Network Settings")]
-    [SerializeField] private string hostIpAddress = "192.168.11.58";
+    [SerializeField] private string hostIpAddress = "192.168.56.1";
     [SerializeField] private ushort port = 7777;
 
     [Header("Scene Settings")]

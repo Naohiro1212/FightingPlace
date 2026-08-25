@@ -21,6 +21,7 @@ public class WeaponData : ScriptableObject
     [Header("Gun settings")]
     public int maxAmmo; // 最大弾数
     public GameObject bulletPrefab; // 弾のプレハブ
+    public float reloadTime;
 
     [Header("Melee / Unarmed Settings")]
     public float attackRadius;
