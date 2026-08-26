@@ -20,6 +20,11 @@ public class Weapon : NetworkBehaviour
 
     [Header("Ammo")]
     [SerializeField] private int currentAmmo;
+    
+    public int getCurrentAmmo()
+    {
+        return currentAmmo;
+    }
 
     [Header("ReloadTime")]
     [SerializeField] private float reloadTime;
