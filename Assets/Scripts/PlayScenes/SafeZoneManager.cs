@@ -29,6 +29,14 @@ public class SafeZoneManager : MonoBehaviour
     private Vector3 nextCenter;
     private float nextRadius;
 
+    [SerializeField]
+    private MeshFilter dangerZoneMeshFilter;
+
+    [SerializeField]
+    private float dangerOuterRadius = 150.0f;
+
+    private Mesh dangerZoneMesh;
+
     private void Start()
     {
         currentCenter = transform.position;
@@ -36,12 +44,16 @@ public class SafeZoneManager : MonoBehaviour
 
         zoneLine.useWorldSpace = true;
 
+        dangerZoneMesh = new Mesh();
+        dangerZoneMeshFilter.mesh = dangerZoneMesh;
+
         StartCoroutine(ZoneRoutine());
     }
 
     private void Update()
     {
         DrawCircle();
+        DrawDangerZone();
     }
 
     private IEnumerator ZoneRoutine()
@@ -61,19 +73,33 @@ public class SafeZoneManager : MonoBehaviour
 
     private void CreateNextZone()
     {
-        nextRadius = currentRadius * nextRadiusRate;
+        float rate = Mathf.Clamp01(nextRadiusRate);
 
-        // 次の円が現在の円からはみ出さない最大距離
+        nextRadius = currentRadius * rate;
+
+        // ある程度小さくなったら最後は0
+        if (nextRadius < 1.0f)
+        {
+            nextRadius = 0.0f;
+        }
+
         float maxOffset = currentRadius - nextRadius;
 
-        float angle = Random.Range(0.0f, Mathf.PI * 2.0f);
-        float distance = Random.Range(0.0f, maxOffset);
+        float angle = Random.Range(
+            0.0f,
+            Mathf.PI * 2.0f
+        );
+
+        float distance = Random.Range(
+            0.0f,
+            maxOffset
+        );
 
         Vector3 offset = new Vector3(
             Mathf.Cos(angle) * distance,
             0.0f,
             Mathf.Sin(angle) * distance
-            );
+        );
 
         nextCenter = currentCenter + offset;
     }
@@ -97,6 +123,67 @@ public class SafeZoneManager : MonoBehaviour
         }
     }
 
+    private void DrawDangerZone()
+    {
+        dangerZoneMesh.Clear();
+
+        Vector3[] vertices = new Vector3[(segments + 1) * 2];
+        int[] triangles = new int[segments * 6];
+
+        for (int i = 0; i <= segments; i++)
+        {
+            float angle =
+                ((float)i / segments) *
+                Mathf.PI * 2.0f;
+
+            float cos = Mathf.Cos(angle);
+            float sin = Mathf.Sin(angle);
+
+            // 安置の境界
+            vertices[i * 2] = new Vector3(
+                cos * currentRadius,
+                1.0f,
+                sin * currentRadius
+            );
+
+            // 赤エリアの外側
+            vertices[i * 2 + 1] = new Vector3(
+                cos * dangerOuterRadius,
+                1.0f,
+                sin * dangerOuterRadius
+            );
+        }
+
+        for (int i = 0; i < segments; i++)
+        {
+            int vertexIndex = i * 2;
+            int triangleIndex = i * 6;
+
+            triangles[triangleIndex] =
+                vertexIndex;
+
+            triangles[triangleIndex + 1] =
+                vertexIndex + 1;
+
+            triangles[triangleIndex + 2] =
+                vertexIndex + 2;
+
+            triangles[triangleIndex + 3] =
+                vertexIndex + 2;
+
+            triangles[triangleIndex + 4] =
+                vertexIndex + 1;
+
+            triangles[triangleIndex + 5] =
+                vertexIndex + 3;
+        }
+
+        dangerZoneMesh.vertices = vertices;
+        dangerZoneMesh.triangles = triangles;
+
+        dangerZoneMesh.RecalculateBounds();
+    }
+
     // ゾーンを縮小する
     private IEnumerator ShrinkZone()
     {
@@ -109,27 +196,32 @@ public class SafeZoneManager : MonoBehaviour
         {
             timer += Time.deltaTime;
 
-            float t = timer / shrinkTime;
+            float t = Mathf.Clamp01(
+                timer / shrinkTime
+            );
 
             currentCenter = Vector3.Lerp(
                 startCenter,
                 nextCenter,
                 t
-                );
+            );
 
             currentRadius = Mathf.Lerp(
                 startRadiusValue,
                 nextRadius,
                 t
-                );
+            );
 
             transform.position = currentCenter;
 
             yield return null;
         }
 
+        // 最後の値を確実に一致させる
         currentCenter = nextCenter;
         currentRadius = nextRadius;
+
+        transform.position = currentCenter;
     }
 
     public bool IsInsideZone(Vector3 position)

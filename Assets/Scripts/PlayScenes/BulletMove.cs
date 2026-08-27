@@ -69,6 +69,8 @@ public class BulletMove : NetworkBehaviour
         }
 
         rb.linearVelocity = direction * speed;
+
+
     }
 
     private void OnTriggerEnter(Collider other)
