@@ -52,7 +52,6 @@ public class PlayerStatus : NetworkBehaviour
             NetworkVariableWritePermission.Server
         );
 
-
     // =========================================
     // Network Spawn
     // =========================================
