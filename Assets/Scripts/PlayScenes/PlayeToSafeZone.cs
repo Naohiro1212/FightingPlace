@@ -2,41 +2,60 @@ using UnityEngine;
 
 public class PlayerToSafeZone : MonoBehaviour
 {
-    PlayerStatus status;
-    SafeZoneManager manager;
-    [SerializeField] private new Transform transform;
+    private PlayerStatus status;
 
-    // ゾーン外に出ている際の時間
-    private float outOfZoneTimer = 0.0f;
+    [SerializeField]
+    private SafeZoneManager manager;
+
+    [Header("Zone Damage")]
+    [SerializeField]
     private float maxOutTimer = 1.0f;
+
+    [SerializeField]
     private int zoneDamage = 10;
+
+    private float outOfZoneTimer = 0.0f;
 
     private void Start()
     {
-        manager = GetComponent<SafeZoneManager>();
         status = GetComponent<PlayerStatus>();
+
+        manager = FindAnyObjectByType<SafeZoneManager>();
 
         if (manager == null)
         {
-            Debug.Log("ゾーンマネージャーがありません");
+            Debug.LogError("SafeZoneManagerが設定されていません");
         }
 
         if (status == null)
         {
-            Debug.Log("ステータスがありません");
+            Debug.LogError("PlayerStatusがありません");
         }
     }
 
     private void Update()
     {
-        if (manager.IsInsideZone(transform.position))
+        if (manager == null || status == null)
+        {
+            return;
+        }
+
+        // 安置の外にいる
+        if (!manager.IsInsideZone(transform.position))
         {
             outOfZoneTimer += Time.deltaTime;
-            if (outOfZoneTimer > maxOutTimer)
+
+            if (outOfZoneTimer >= maxOutTimer)
             {
                 outOfZoneTimer = 0.0f;
+
                 status.TakeDamage(zoneDamage);
             }
+        }
+        else
+        {
+            // 安置内に戻ったらタイマーリセット
+            outOfZoneTimer = 0.0f;
         }
     }
 }

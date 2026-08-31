@@ -58,7 +58,7 @@ public class SafeZoneManager : MonoBehaviour
 
     private IEnumerator ZoneRoutine()
     {
-        while (currentRadius > 3.0f)
+        while (currentRadius > 0.0f)
         {
             // 次の安置を決める
             CreateNextZone();

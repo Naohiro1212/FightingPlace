@@ -19,9 +19,14 @@ public class Weapon : NetworkBehaviour
     [SerializeField] private AudioSource reloadSound;
 
     [Header("Ammo")]
-    [SerializeField] private int currentAmmo;
-    
-    public int getCurrentAmmo()
+    public NetworkVariable<int> currentAmmo =
+        new NetworkVariable<int>(
+            0,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+
+    public NetworkVariable<int> getCurrentAmmo()
     {
         return currentAmmo;
     }
@@ -73,11 +78,11 @@ public class Weapon : NetworkBehaviour
         if (weaponData != null &&
             weaponData.attackType == AttackType.Gun)
         {
-            currentAmmo = weaponData.maxAmmo;
+            currentAmmo.Value = weaponData.maxAmmo;
         }
         else
         {
-            currentAmmo = 0;
+            currentAmmo.Value = 0;
         }
 
         reloadTime = WeaponData.reloadTime;
@@ -90,14 +95,14 @@ public class Weapon : NetworkBehaviour
             return;
         }
 
-        if (currentAmmo <= 0)
+        if (currentAmmo.Value <= 0)
         {
             reloadTimer += Time.deltaTime;
 
             if (reloadTimer >= reloadTime)
             {
                 reloadSound.PlayOneShot(reloadSound.clip, 1.0f);
-                currentAmmo = weaponData.maxAmmo;
+                currentAmmo.Value = weaponData.maxAmmo;
                 reloadTimer = 0.0f;
 
                 Debug.Log("リロード完了");
@@ -206,7 +211,7 @@ public class Weapon : NetworkBehaviour
 
     private void DoGunAttack()
     {
-        if (currentAmmo <= 0)
+        if (currentAmmo.Value <= 0)
         {
             Debug.Log("弾切れ");
             return;
@@ -224,7 +229,7 @@ public class Weapon : NetworkBehaviour
             return;
         }
 
-        currentAmmo--;
+        currentAmmo.Value--;
 
         Vector3 fireDirection =
             playerStatus.transform.forward.normalized;

@@ -37,6 +37,7 @@ public class NetworkManagerController : MonoBehaviour
 
     private static NetworkManagerController instance;
 
+    public static NetworkManagerController Instance => instance;
 
     // ============================================================
     // Unity
@@ -56,6 +57,7 @@ public class NetworkManagerController : MonoBehaviour
         hostIpAddressInput = hostIpAddress;
 
         DontDestroyOnLoad(gameObject);
+    
     }
 
 
@@ -95,6 +97,16 @@ public class NetworkManagerController : MonoBehaviour
         Debug.Log(
             $"[ConnectionStatus] {message}"
         );
+    }
+
+    public void SetConnectionStatusText(TextMeshProUGUI text)
+    {
+        connectionStatusText = text;
+
+        if (connectionStatusText != null)
+        {
+            connectionStatusText.text = statusMessage;
+        }
     }
 
 
@@ -787,5 +799,26 @@ public class NetworkManagerController : MonoBehaviour
         Application.Quit();
 
 #endif
+    }
+
+    public void Disconnect()
+    {
+        if (networkManager != null)
+        {
+            if (networkManager.IsListening)
+            {
+                networkManager.Shutdown();
+            }
+        }
+
+        hasStarted = false;
+        hasRequestedSceneLoad = false;
+        matchResultSpawned = false;
+
+        SetConnectionStatus("not connecting");
+
+        Debug.Log(
+            "[NetworkManagerController] 通信状態をリセットしました"
+        );
     }
 }

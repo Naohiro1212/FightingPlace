@@ -13,6 +13,8 @@ public class PlayerStatus : NetworkBehaviour
     [SerializeField]
     private int maxHealth = 100;
 
+    private PlayerCanvasManager canvasManager;
+
     // =========================================
     // HPをNetworkVariableに変更
     // =========================================
@@ -60,14 +62,34 @@ public class PlayerStatus : NetworkBehaviour
     {
         base.OnNetworkSpawn();
 
-        // HP初期化はServerだけ
         if (IsServer)
         {
             currentHealth.Value = maxHealth;
         }
 
-        // HP変更監視
         currentHealth.OnValueChanged += OnHealthChanged;
+
+        // PlayerIDの変更を監視
+        playerID.OnValueChanged += OnPlayerIDChanged;
+
+        // 自分が操作しているPlayerだけUIを設定する
+        if (IsOwner)
+        {
+            canvasManager =
+                FindAnyObjectByType<PlayerCanvasManager>();
+
+            if (canvasManager == null)
+            {
+                Debug.LogError(
+                    "PlayerCanvasManagerが見つかりません"
+                );
+            }
+            else
+            {
+                // すでにIDが設定されていた場合
+                UpdatePlayerCanvas(playerID.Value);
+            }
+        }
 
         Debug.Log(
             $"[PlayerStatus] OnNetworkSpawn " +
@@ -78,14 +100,47 @@ public class PlayerStatus : NetworkBehaviour
         );
     }
 
+    private void OnPlayerIDChanged(
+    int previousValue,
+    int newValue)
+    {
+        if (!IsOwner)
+        {
+            return;
+        }
+
+        Debug.Log(
+            $"自分のPlayerIDが " +
+            $"{previousValue} → {newValue}"
+        );
+
+        UpdatePlayerCanvas(newValue);
+    }
+
+    private void UpdatePlayerCanvas(int id)
+    {
+        if (canvasManager == null)
+        {
+            canvasManager =
+                FindAnyObjectByType<PlayerCanvasManager>();
+        }
+
+        if (canvasManager == null)
+        {
+            return;
+        }
+
+        canvasManager.SetPlayerCanvas(id);
+    }
+
 
     public override void OnNetworkDespawn()
     {
         currentHealth.OnValueChanged -= OnHealthChanged;
+        playerID.OnValueChanged -= OnPlayerIDChanged;
 
         base.OnNetworkDespawn();
     }
-
 
     // =========================================
     // HP変更通知

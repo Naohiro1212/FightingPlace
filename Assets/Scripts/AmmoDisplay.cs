@@ -21,6 +21,6 @@ public class AmmoDisplay : MonoBehaviour
 
     private void Update()
     {
-        UItext.text = ":" + weapon.getCurrentAmmo().ToString();
+        UItext.text = ":" + weapon.getCurrentAmmo().Value.ToString();
     }
 }

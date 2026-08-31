@@ -7,6 +7,7 @@ TagManager:
   - Gun
   - StaticObject
   - FirePoint
+  - ConnectStatus
   layers:
   - Default
   - TransparentFX
