@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using System.Collections;
 
 public class GameTimer : MonoBehaviour
 {
@@ -7,18 +8,51 @@ public class GameTimer : MonoBehaviour
     public TextMeshProUGUI timerText;
 
     // Playerの制御のために
-    public PlayerStatus[] playerStatus;
+    public PlayerStatus[] playerStatuses;
 
     private bool started = false;
 
-    void Start()
+    private void Start()
     {
-        // 開始時はプレイヤーは全員動けないようにする
-        for (int i = 0; i < playerStatus.Length; i++)
+        StartCoroutine(FindPlayersCoroutine());
+    }
+
+    private IEnumerator FindPlayersCoroutine()
+    {
+        while (true)
         {
-            playerStatus[i].canMove = false;
+            playerStatuses = FindObjectsByType<PlayerStatus>();
+
+            if (playerStatuses != null && playerStatuses.Length >= 2)
+            {
+                break;
+            }
+
+            yield return null;
+        }
+
+        for (int i = 0; i < playerStatuses.Length; i++)
+        {
+            Debug.Log(playerStatuses[i].playerID.Value);
+        }
+
+        if (playerStatuses.Length != 2)
+        {
+            Debug.Log("正しいプレイヤーの数設定されていません");
+        }
+
+        // NetworkVariableの変更はサーバーのみ
+        if (Unity.Netcode.NetworkManager.Singleton != null &&
+            Unity.Netcode.NetworkManager.Singleton.IsServer)
+        {
+            for (int i = 0; i < playerStatuses.Length; i++)
+            {
+                playerStatuses[i].canMove.Value = false;
+                playerStatuses[i].canShoot.Value = false;
+            }
         }
     }
+
     private void Update()
     {
         if (started) return;
@@ -41,10 +75,14 @@ public class GameTimer : MonoBehaviour
     {
         started = true;
 
-        for(int i = 0;i < playerStatus.Length; i++)
+        if (Unity.Netcode.NetworkManager.Singleton != null &&
+            Unity.Netcode.NetworkManager.Singleton.IsServer)
         {
-            playerStatus[i].canMove = true;
-            playerStatus[i].canShoot = true;
+            for (int i = 0; i < playerStatuses.Length; i++)
+            {
+                playerStatuses[i].canMove.Value = true;
+                playerStatuses[i].canShoot.Value = true;
+            }
         }
 
         // 少し後に文字を消す

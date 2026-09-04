@@ -1,97 +1,228 @@
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerMove : MonoBehaviour
+public class PlayerMove : NetworkBehaviour
 {
-    [SerializeField] private float moveSpeed = 5f;
+    [SerializeField]
+    private float moveSpeed = 5f;
+
+    [SerializeField]
+    private float stickDeadZone = 0.1f;
 
     private Rigidbody rb;
     private Vector3 moveInput;
-    private Vector3 target;
+    private Vector3 lookDirection;
+
     private Animator animator;
     private PlayerStatus playerStatus;
 
-    private void Start()
+    private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        if (rb == null) Debug.Log("rbが入っていません");
+
+        if (rb == null)
+        {
+            Debug.Log("rbが入っていません");
+        }
 
         playerStatus = GetComponent<PlayerStatus>();
-        if (playerStatus == null) Debug.Log("playerStatusが入っていません");
+
+        if (playerStatus == null)
+        {
+            Debug.Log("playerStatusが入っていません");
+        }
 
         animator = GetComponent<Animator>();
-        if (animator == null) Debug.Log("animatorが入っていません");
+
+        if (animator == null)
+        {
+            Debug.Log("animatorが入っていません");
+        }
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+
+        // 最初は現在向いている方向
+        lookDirection = transform.forward;
     }
 
     private void Update()
     {
-        Vector2 input = Vector2.zero;
-
-        if (Keyboard.current != null && playerStatus.canMove != false)
+        if (!IsOwner)
         {
-            if (playerStatus.playerID == 1)
-            {
-                if (Keyboard.current.aKey.isPressed) input.x -= 1f;
-                if (Keyboard.current.dKey.isPressed) input.x += 1f;
-                if (Keyboard.current.sKey.isPressed) input.y -= 1f;
-                if (Keyboard.current.wKey.isPressed) input.y += 1f;
-            }
-            else if (playerStatus.playerID == 2)
-            {
-                if (Keyboard.current.leftArrowKey.isPressed) input.x -= 1f;
-                if (Keyboard.current.rightArrowKey.isPressed) input.x += 1f;
-                if (Keyboard.current.downArrowKey.isPressed) input.y -= 1f;
-                if (Keyboard.current.upArrowKey.isPressed) input.y += 1f;
-            }
+            return;
         }
 
-        // 正規化して斜め移動が速くなりすぎないようにする
-        input = input.normalized;
-
-        // Vector2 → Vector3
-        moveInput = new Vector3(input.x, 0f, input.y);
-
-        // Animator パラメータ更新
-        if (animator != null)
-        {
-            Vector3 localMove = transform.InverseTransformDirection(moveInput);
-            animator.SetFloat("Horizontal", localMove.x);
-            animator.SetFloat("Vertical", localMove.z);
-            animator.SetFloat("Speed", moveInput.magnitude);
-
-            //Debug.Log("Horizontal: " + localMove.x + ", Vertical: " + localMove.z + ", Speed: " + moveInput.magnitude);
-        }
-
-        // マウス位置から向き先を取得
-        if (Mouse.current != null && Camera.main != null)
-        {
-            Vector2 mousePos = Mouse.current.position.ReadValue();
-            Ray ray = Camera.main.ScreenPointToRay(mousePos);
-
-            Plane groundPlane = new Plane(Vector3.up, transform.position);
-
-            if (groundPlane.Raycast(ray, out float distance))
-            {
-                target = ray.GetPoint(distance);
-            }
-        }
+        UpdateControllerInput();
+        UpdateControllerLookDirection();
+        UpdateAnimator();
     }
 
     private void FixedUpdate()
     {
-        if (playerStatus.canMove)
+        if (!IsSpawned)
         {
-            Vector3 nextPosition = rb.position + moveInput * moveSpeed * Time.fixedDeltaTime;
-            rb.MovePosition(nextPosition);
-
-            Vector3 lookDirection = target - transform.position;
-            lookDirection.y = 0f;
-
-            if (lookDirection.sqrMagnitude > 0.001f)
-            {
-                Quaternion rotation = Quaternion.LookRotation(lookDirection);
-                rb.MoveRotation(rotation);
-            }
+            return;
         }
+
+        if (!IsOwner)
+        {
+            return;
+        }
+
+        if (playerStatus == null ||
+            !playerStatus.canMove.Value)
+        {
+            return;
+        }
+
+        Move(moveInput);
+
+        Rotate(lookDirection);
+    }
+
+    // =========================================
+    // 左スティック移動
+    // =========================================
+    private void UpdateControllerInput()
+    {
+        if (playerStatus == null ||
+            !playerStatus.canMove.Value)
+        {
+            moveInput = Vector3.zero;
+            return;
+        }
+
+        if (Gamepad.current == null)
+        {
+            moveInput = Vector3.zero;
+            return;
+        }
+
+        Vector2 input =
+            Gamepad.current.leftStick.ReadValue();
+
+        // 左スティックを触っていなければ十字キー
+        if (input.sqrMagnitude <
+            stickDeadZone * stickDeadZone)
+        {
+            input =
+                Gamepad.current.dpad.ReadValue();
+        }
+
+        input =
+            Vector2.ClampMagnitude(
+                input,
+                1f
+            );
+
+        moveInput = new Vector3(
+            input.x,
+            0f,
+            input.y
+        );
+    }
+
+    // =========================================
+    // 右スティックで向きを変更
+    // =========================================
+    private void UpdateControllerLookDirection()
+    {
+        if (Gamepad.current == null)
+        {
+            return;
+        }
+
+        Vector2 lookInput =
+            Gamepad.current.rightStick.ReadValue();
+
+        // 右スティックを倒していない
+        if (lookInput.sqrMagnitude <
+            stickDeadZone * stickDeadZone)
+        {
+            // lookDirectionを変更しない
+            // → 最後の角度をそのまま維持
+            return;
+        }
+
+        lookDirection = new Vector3(
+            lookInput.x,
+            0f,
+            lookInput.y
+        ).normalized;
+    }
+
+    // =========================================
+    // Animator
+    // =========================================
+    private void UpdateAnimator()
+    {
+        if (animator == null)
+        {
+            return;
+        }
+
+        Vector3 localMove =
+            transform.InverseTransformDirection(
+                moveInput
+            );
+
+        animator.SetFloat(
+            "Horizontal",
+            localMove.x,
+            0.1f,
+            Time.deltaTime
+        );
+
+        animator.SetFloat(
+            "Vertical",
+            localMove.z,
+            0.1f,
+            Time.deltaTime
+        );
+
+        animator.SetFloat(
+            "Speed",
+            moveInput.magnitude,
+            0.1f,
+            Time.deltaTime
+        );
+    }
+
+    // =========================================
+    // 移動
+    // =========================================
+    private void Move(
+        Vector3 inputDirection)
+    {
+        Vector3 nextPosition =
+            rb.position +
+            inputDirection *
+            moveSpeed *
+            Time.fixedDeltaTime;
+
+        rb.MovePosition(nextPosition);
+    }
+
+    // =========================================
+    // 回転
+    // =========================================
+    private void Rotate(
+        Vector3 direction)
+    {
+        direction.y = 0f;
+
+        if (direction.sqrMagnitude < 0.001f)
+        {
+            return;
+        }
+
+        Quaternion rotation =
+            Quaternion.LookRotation(direction);
+
+        rb.MoveRotation(rotation);
     }
 }

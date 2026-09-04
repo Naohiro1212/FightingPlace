@@ -1,31 +1,61 @@
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerAttack : MonoBehaviour
+public class PlayerAttack : NetworkBehaviour
 {
-    [SerializeField] private WeaponData initialWeaponData;
-    [SerializeField] private Weapon currentWeapon;
+    [SerializeField]
+    private WeaponData initialWeaponData;
+
+    [SerializeField]
+    private Weapon currentWeapon;
 
     private float lastAttackTime;
+
     private PlayerStatus playerStatus;
 
-    private void Start()
+    private void Awake()
     {
         playerStatus = GetComponent<PlayerStatus>();
-        playerStatus.canShoot = currentWeapon != null;
 
-        if (initialWeaponData != null)
+        if (playerStatus == null)
+        {
+            Debug.LogError("PlayerStatusがありません");
+        }
+    }
+
+    public override void OnNetworkSpawn()
+    {
+        base.OnNetworkSpawn();
+
+        if (playerStatus == null)
+        {
+            return;
+        }
+
+        if (initialWeaponData != null &&
+            currentWeapon != null)
         {
             EquipWeapon(initialWeaponData);
         }
     }
 
-    void Update()
+    private void Update()
     {
-        if (Mouse.current == null || currentWeapon == null) return;
+        if (!IsSpawned || !IsOwner)
+        {
+            return;
+        }
 
-        bool leftClickPressed = Mouse.current.leftButton.wasPressedThisFrame;
-        if (leftClickPressed && playerStatus.canShoot)
+        if (Gamepad.current == null ||
+            currentWeapon == null ||
+            playerStatus == null)
+        {
+            return;
+        }
+
+        if (Gamepad.current.rightTrigger.isPressed &&
+            playerStatus.canShoot.Value)
         {
             TryAttack();
         }
@@ -33,21 +63,37 @@ public class PlayerAttack : MonoBehaviour
 
     public void EquipWeapon(WeaponData newWeaponData)
     {
-        if (newWeaponData == null || currentWeapon == null) return;
+        if (newWeaponData == null ||
+            currentWeapon == null ||
+            playerStatus == null)
+        {
+            return;
+        }
 
-        currentWeapon.SetUp(playerStatus, currentWeapon.FirePoint, newWeaponData);
-        
-        playerStatus.canShoot = true;
+        currentWeapon.SetUp(
+            playerStatus,
+            currentWeapon.FirePoint,
+            newWeaponData
+        );
     }
 
     public void TryAttack()
     {
-        if (currentWeapon == null) return;
-
-        if (Time.time < lastAttackTime + currentWeapon.Data.cooldown)
+        if (currentWeapon == null ||
+            currentWeapon.Data == null)
+        {
             return;
+        }
+
+        if (Time.time <
+            lastAttackTime +
+            currentWeapon.Data.cooldown)
+        {
+            return;
+        }
 
         currentWeapon.Attack();
+
         lastAttackTime = Time.time;
     }
 }
