@@ -19,6 +19,8 @@ public class GameManager : NetworkBehaviour
         NetworkVariableReadPermission.Everyone,
         NetworkVariableWritePermission.Server);
 
+    private bool isGameEnded = false;
+
     void Awake()
     {
         if (Instance != null && Instance != this)
@@ -71,6 +73,10 @@ public class GameManager : NetworkBehaviour
     public void OnPlayerDown(int downedPlayerId)
     {
         if (!IsServer) return;
+
+        if (isGameEnded) return;
+
+        isGameEnded = true;
 
         int winner = (downedPlayerId == 1) ? 2 : 1;
         WinnerId.Value = winner;

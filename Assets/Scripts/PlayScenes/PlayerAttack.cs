@@ -4,33 +4,37 @@ using UnityEngine.InputSystem;
 
 public class PlayerAttack : NetworkBehaviour
 {
-    [SerializeField] private WeaponData initialWeaponData;
-    [SerializeField] private Weapon currentWeapon;
+    [SerializeField]
+    private WeaponData initialWeaponData;
+
+    [SerializeField]
+    private Weapon currentWeapon;
 
     private float lastAttackTime;
+
     private PlayerStatus playerStatus;
+
+    private void Awake()
+    {
+        playerStatus = GetComponent<PlayerStatus>();
+
+        if (playerStatus == null)
+        {
+            Debug.LogError("PlayerStatusがありません");
+        }
+    }
 
     public override void OnNetworkSpawn()
     {
+        base.OnNetworkSpawn();
+
         if (playerStatus == null)
         {
             return;
         }
 
-        playerStatus.canShoot.Value = currentWeapon != null;
-
-        if (initialWeaponData != null && currentWeapon != null)
-        {
-            EquipWeapon(initialWeaponData);
-        }
-    }
-
-    private void Start()
-    {
-        playerStatus = GetComponent<PlayerStatus>();
-        playerStatus.canShoot.Value = currentWeapon != null;
-
-        if (initialWeaponData != null)
+        if (initialWeaponData != null &&
+            currentWeapon != null)
         {
             EquipWeapon(initialWeaponData);
         }
@@ -43,12 +47,15 @@ public class PlayerAttack : NetworkBehaviour
             return;
         }
 
-        if (Mouse.current == null || currentWeapon == null || playerStatus == null)
+        if (Gamepad.current == null ||
+            currentWeapon == null ||
+            playerStatus == null)
         {
             return;
         }
 
-        if (Mouse.current.leftButton.isPressed && playerStatus.canShoot.Value)
+        if (Gamepad.current.rightTrigger.isPressed &&
+            playerStatus.canShoot.Value)
         {
             TryAttack();
         }
@@ -56,28 +63,37 @@ public class PlayerAttack : NetworkBehaviour
 
     public void EquipWeapon(WeaponData newWeaponData)
     {
-        if (newWeaponData == null || currentWeapon == null || playerStatus == null)
+        if (newWeaponData == null ||
+            currentWeapon == null ||
+            playerStatus == null)
         {
             return;
         }
 
-        currentWeapon.SetUp(playerStatus, currentWeapon.FirePoint, newWeaponData);
-        playerStatus.canShoot.Value = true;
+        currentWeapon.SetUp(
+            playerStatus,
+            currentWeapon.FirePoint,
+            newWeaponData
+        );
     }
 
     public void TryAttack()
     {
-        if (currentWeapon == null || currentWeapon.Data == null)
+        if (currentWeapon == null ||
+            currentWeapon.Data == null)
         {
             return;
         }
 
-        if (Time.time < lastAttackTime + currentWeapon.Data.cooldown)
+        if (Time.time <
+            lastAttackTime +
+            currentWeapon.Data.cooldown)
         {
             return;
         }
 
         currentWeapon.Attack();
+
         lastAttackTime = Time.time;
     }
 }

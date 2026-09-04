@@ -301,36 +301,31 @@ public class NetworkBattleManager : NetworkBehaviour
             // Player IDê›íË
             // ======================================
 
+            int assignedPlayerId = i + 1;
+
             NetworkPlayerContext context =
                 player.GetComponent<NetworkPlayerContext>();
 
-
             if (context != null)
             {
-                context.SetPlayerId(
-                    i + 1
-                );
+                context.SetPlayerId(assignedPlayerId);
+            }
+
+            PlayerStatus playerStatus =
+                player.GetComponent<PlayerStatus>();
+
+            if (playerStatus != null)
+            {
+                playerStatus.playerID.Value =
+                    assignedPlayerId;
             }
             else
             {
-                PlayerStatus playerStatus =
-                    player.GetComponent<PlayerStatus>();
-
-                if (playerStatus != null)
-                {
-                    playerStatus.playerID.Value =
-                        i + 1;
-                }
-                else
-                {
-                    Debug.LogWarning(
-                        $"[NetworkBattleManager] " +
-                        $"PlayerÇ…NetworkPlayerContextÇ‡" +
-                        $"PlayerStatusÇ‡Ç†ÇËÇ‹ÇπÇÒ"
-                    );
-                }
+                Debug.LogWarning(
+                    "[NetworkBattleManager] " +
+                    "PlayerStatusÇ™Ç†ÇËÇ‹ÇπÇÒ"
+                );
             }
-
 
             Debug.Log(
                 $"[NetworkBattleManager] " +

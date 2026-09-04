@@ -13,6 +13,9 @@ public class PlayerStatus : NetworkBehaviour
     [SerializeField]
     private int maxHealth = 100;
 
+    [SerializeField]
+    private ParticleSystem damageVfx;
+
     private PlayerCanvasManager canvasManager;
 
     // =========================================
@@ -183,6 +186,7 @@ public class PlayerStatus : NetworkBehaviour
             $"HP(before)={currentHealth.Value}"
         );
 
+
         // HP変更はServerだけ
         if (!IsServer)
         {
@@ -206,6 +210,7 @@ public class PlayerStatus : NetworkBehaviour
         // =========================================
 
         currentHealth.Value -= amount;
+        PlayDamageVfxRpc();
 
         // HPがマイナスにならないようにする
         if (currentHealth.Value < 0)
@@ -231,6 +236,14 @@ public class PlayerStatus : NetworkBehaviour
         }
     }
 
+    // =========================================
+    // vfx再生
+    // =========================================
+    [Rpc(SendTo.ClientsAndHost)]
+    private void PlayDamageVfxRpc()
+    {
+        damageVfx?.Play();
+    }
 
     // =========================================
     // Die

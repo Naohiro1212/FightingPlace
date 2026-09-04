@@ -56,7 +56,6 @@ public class Weapon : NetworkBehaviour
 
     private void Awake()
     {
-        ResetAmmo();
     }
 
     public void SetUp(
@@ -68,28 +67,55 @@ public class Weapon : NetworkBehaviour
         this.firePoint = firePoint;
         this.weaponData = weaponData;
 
-        ResetAmmo();
+        // 弾薬変更はServerのみ
+        if (IsServer)
+        {
+            ResetAmmo();
+        }
+
         RefreshModel();
         CreateMuzzleEffect();
     }
 
     private void ResetAmmo()
     {
-        if (weaponData != null &&
-            weaponData.attackType == AttackType.Gun)
+        if (!IsServer)
         {
-            currentAmmo.Value = weaponData.maxAmmo;
+            return;
+        }
+
+        if (weaponData == null)
+        {
+            return;
+        }
+
+        if (weaponData.attackType == AttackType.Gun)
+        {
+            currentAmmo.Value =
+                weaponData.maxAmmo;
         }
         else
         {
             currentAmmo.Value = 0;
         }
 
-        reloadTime = WeaponData.reloadTime;
+        reloadTime =
+            weaponData.reloadTime;
     }
 
     private void Update()
     {
+        if (!IsSpawned)
+        {
+            return;
+        }
+
+        // リロード管理はServerだけ
+        if (!IsServer)
+        {
+            return;
+        }
+
         if (weaponData == null)
         {
             return;
@@ -101,9 +127,12 @@ public class Weapon : NetworkBehaviour
 
             if (reloadTimer >= reloadTime)
             {
-                reloadSound.PlayOneShot(reloadSound.clip, 1.0f);
-                currentAmmo.Value = weaponData.maxAmmo;
+                currentAmmo.Value =
+                    weaponData.maxAmmo;
+
                 reloadTimer = 0.0f;
+
+                PlayReloadSoundClientRpc();
 
                 Debug.Log("リロード完了");
             }
@@ -229,8 +258,6 @@ public class Weapon : NetworkBehaviour
             return;
         }
 
-        currentAmmo.Value--;
-
         Vector3 fireDirection =
             playerStatus.transform.forward.normalized;
 
@@ -240,31 +267,65 @@ public class Weapon : NetworkBehaviour
 
         FireBulletServerRpc(
             spawnPosition,
-            fireDirection,
-            playerStatus.playerID.Value
+            fireDirection
         );
     }
 
     [ServerRpc]
     private void FireBulletServerRpc(
-        Vector3 spawnPosition,
-        Vector3 fireDirection,
-        int shooterPlayerId)
+    Vector3 spawnPosition,
+    Vector3 fireDirection)
     {
         if (weaponData == null)
+        {
             return;
+        }
 
         if (weaponData.bulletPrefab == null)
+        {
             return;
+        }
+
+        if (playerStatus == null)
+        {
+            return;
+        }
+
+        // ============================
+        // Server側で攻撃可能か確認
+        // ============================
+
+        if (!playerStatus.canShoot.Value)
+        {
+            return;
+        }
+
+        // Server側で弾数確認
+        if (currentAmmo.Value <= 0)
+        {
+            Debug.Log("弾切れ");
+
+            return;
+        }
+
+        // ★ Serverだけが弾を減らす
+        currentAmmo.Value--;
+
+        Debug.Log(
+            $"残弾数 = {currentAmmo.Value}"
+        );
 
         Quaternion rotation =
-            Quaternion.LookRotation(fireDirection);
+            Quaternion.LookRotation(
+                fireDirection
+            );
 
-        GameObject bullet = Instantiate(
-            weaponData.bulletPrefab,
-            spawnPosition,
-            rotation
-        );
+        GameObject bullet =
+            Instantiate(
+                weaponData.bulletPrefab,
+                spawnPosition,
+                rotation
+            );
 
         BulletMove bulletMove =
             bullet.GetComponent<BulletMove>();
@@ -276,12 +337,13 @@ public class Weapon : NetworkBehaviour
             networkObject == null)
         {
             Destroy(bullet);
+
             return;
         }
 
         bulletMove.InitializeOnServer(
             weaponData,
-            shooterPlayerId,
+            playerStatus.playerID.Value,
             fireDirection
         );
 
@@ -366,6 +428,21 @@ public class Weapon : NetworkBehaviour
         fireSound.PlayOneShot(
             fireSound.clip,
             0.8f
+        );
+    }
+
+    [ClientRpc]
+    private void PlayReloadSoundClientRpc()
+    {
+        if (reloadSound == null ||
+            reloadSound.clip == null)
+        {
+            return;
+        }
+
+        reloadSound.PlayOneShot(
+            reloadSound.clip,
+            1.0f
         );
     }
 

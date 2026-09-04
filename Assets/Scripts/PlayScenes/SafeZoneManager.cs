@@ -1,7 +1,8 @@
 using System.Collections;
+using Unity.Netcode;
 using UnityEngine;
 
-public class SafeZoneManager : MonoBehaviour
+public class SafeZoneManager : NetworkBehaviour
 {
     [Header("SafeZone")]
     [SerializeField] 
@@ -23,8 +24,19 @@ public class SafeZoneManager : MonoBehaviour
     [SerializeField]
     private float shrinkTime = 8.0f;
 
-    private Vector3 currentCenter;
-    private float currentRadius;
+    private NetworkVariable<Vector3> currentCenter =
+        new NetworkVariable<Vector3>(
+            Vector3.zero,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
+
+    private NetworkVariable<float> currentRadius =
+        new NetworkVariable<float>(
+            0.0f,
+            NetworkVariableReadPermission.Everyone,
+            NetworkVariableWritePermission.Server
+        );
 
     private Vector3 nextCenter;
     private float nextRadius;
@@ -37,28 +49,42 @@ public class SafeZoneManager : MonoBehaviour
 
     private Mesh dangerZoneMesh;
 
-    private void Start()
+    public override void OnNetworkSpawn()
     {
-        currentCenter = transform.position;
-        currentRadius = startRadius;
+        base.OnNetworkSpawn();
 
         zoneLine.useWorldSpace = true;
 
         dangerZoneMesh = new Mesh();
         dangerZoneMeshFilter.mesh = dangerZoneMesh;
 
-        StartCoroutine(ZoneRoutine());
+        // 安置の計算はServerだけ
+        if (IsServer)
+        {
+            currentCenter.Value = transform.position;
+            currentRadius.Value = startRadius;
+
+            StartCoroutine(ZoneRoutine());
+        }
     }
 
     private void Update()
     {
+        if (!IsSpawned)
+        {
+            return;
+        }
+
+        // NetworkVariableで同期された中心に合わせる
+        transform.position = currentCenter.Value;
+
         DrawCircle();
         DrawDangerZone();
     }
 
     private IEnumerator ZoneRoutine()
     {
-        while (currentRadius > 0.0f)
+        while (currentRadius.Value > 0.0f)
         {
             // 次の安置を決める
             CreateNextZone();
@@ -73,27 +99,36 @@ public class SafeZoneManager : MonoBehaviour
 
     private void CreateNextZone()
     {
-        float rate = Mathf.Clamp01(nextRadiusRate);
+        if (!IsServer)
+        {
+            return;
+        }
 
-        nextRadius = currentRadius * rate;
+        float rate =
+            Mathf.Clamp01(nextRadiusRate);
 
-        // ある程度小さくなったら最後は0
+        nextRadius =
+            currentRadius.Value * rate;
+
         if (nextRadius < 1.0f)
         {
             nextRadius = 0.0f;
         }
 
-        float maxOffset = currentRadius - nextRadius;
+        float maxOffset =
+            currentRadius.Value - nextRadius;
 
-        float angle = Random.Range(
-            0.0f,
-            Mathf.PI * 2.0f
-        );
+        float angle =
+            Random.Range(
+                0.0f,
+                Mathf.PI * 2.0f
+            );
 
-        float distance = Random.Range(
-            0.0f,
-            maxOffset
-        );
+        float distance =
+            Random.Range(
+                0.0f,
+                maxOffset
+            );
 
         Vector3 offset = new Vector3(
             Mathf.Cos(angle) * distance,
@@ -101,7 +136,8 @@ public class SafeZoneManager : MonoBehaviour
             Mathf.Sin(angle) * distance
         );
 
-        nextCenter = currentCenter + offset;
+        nextCenter =
+            currentCenter.Value + offset;
     }
 
     private void DrawCircle()
@@ -113,13 +149,13 @@ public class SafeZoneManager : MonoBehaviour
             float angle = ((float)i / segments) * Mathf.PI * 2.0f;
 
             Vector3 position = new Vector3(
-                Mathf.Cos(angle) * currentRadius,
+                Mathf.Cos(angle) * currentRadius.Value,
                 0.1f,
-                Mathf.Sin(angle) * currentRadius);
+                Mathf.Sin(angle) * currentRadius.Value);
 
             zoneLine.SetPosition(
                 i,
-                currentCenter + position);
+                currentCenter.Value + position);
         }
     }
 
@@ -141,9 +177,9 @@ public class SafeZoneManager : MonoBehaviour
 
             // 安置の境界
             vertices[i * 2] = new Vector3(
-                cos * currentRadius,
+                cos * currentRadius.Value,
                 1.0f,
-                sin * currentRadius
+                sin * currentRadius.Value
             );
 
             // 赤エリアの外側
@@ -187,8 +223,16 @@ public class SafeZoneManager : MonoBehaviour
     // ゾーンを縮小する
     private IEnumerator ShrinkZone()
     {
-        Vector3 startCenter = currentCenter;
-        float startRadiusValue = currentRadius;
+        if (!IsServer)
+        {
+            yield break;
+        }
+
+        Vector3 startCenter =
+            currentCenter.Value;
+
+        float startRadiusValue =
+            currentRadius.Value;
 
         float timer = 0.0f;
 
@@ -196,32 +240,30 @@ public class SafeZoneManager : MonoBehaviour
         {
             timer += Time.deltaTime;
 
-            float t = Mathf.Clamp01(
-                timer / shrinkTime
-            );
+            float t =
+                Mathf.Clamp01(
+                    timer / shrinkTime
+                );
 
-            currentCenter = Vector3.Lerp(
-                startCenter,
-                nextCenter,
-                t
-            );
+            currentCenter.Value =
+                Vector3.Lerp(
+                    startCenter,
+                    nextCenter,
+                    t
+                );
 
-            currentRadius = Mathf.Lerp(
-                startRadiusValue,
-                nextRadius,
-                t
-            );
-
-            transform.position = currentCenter;
+            currentRadius.Value =
+                Mathf.Lerp(
+                    startRadiusValue,
+                    nextRadius,
+                    t
+                );
 
             yield return null;
         }
 
-        // 最後の値を確実に一致させる
-        currentCenter = nextCenter;
-        currentRadius = nextRadius;
-
-        transform.position = currentCenter;
+        currentCenter.Value = nextCenter;
+        currentRadius.Value = nextRadius;
     }
 
     public bool IsInsideZone(Vector3 position)
@@ -231,21 +273,21 @@ public class SafeZoneManager : MonoBehaviour
             position.z);
 
         Vector2 ZonePos = new Vector2(
-            currentCenter.x,
-            currentCenter.z);
+            currentCenter.Value.x,
+            currentCenter.Value.z);
 
         return Vector2.Distance(
             playerPos,
-            ZonePos) <= currentRadius;
+            ZonePos) <= currentRadius.Value;
     }
 
     public float getRadius()
     {
-        return currentRadius;
+        return currentRadius.Value;
     }
 
     public Vector3 GetCenter()
     {
-        return currentCenter;
+        return currentCenter.Value;
     }
 }
